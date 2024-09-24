@@ -37,8 +37,6 @@ class HotelController extends BaseController
 
         $data = $this->service->getList($req, $fillable);
 
-        
-
         return $this->getPaging($data);
     }
 
