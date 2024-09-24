@@ -8,4 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Hotel extends Model
 {
     use HasFactory;
+    protected $table = 'hotel';
+    protected $fillable = ['uuid', 'name', 'address', 'star_rating', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+    public $timestamps = true;
 }
