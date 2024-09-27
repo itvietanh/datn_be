@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\TransitionController;
 
 Route::group([
     'prefix' => 'system'
@@ -38,5 +39,17 @@ Route::group([
         'prefix' => 'room'
     ], function () {
         Route::get('', [RoomController::class, 'index']);
+    });
+
+    // Giao dịch
+    // Transition 
+    Route::group([
+        'prefix' => 'transition'
+    ], function () {
+        Route::get('', [TransitionController::class, 'index']);
+        Route::post('', [TransitionController::class, 'store']);
+        Route::get('{uuid}', [TransitionController::class, 'show']);
+        Route::put('{uuid}', [TransitionController::class, 'update']);
+        Route::delete('{uuid}', [TransitionController::class, 'destroy']);
     });
 });
