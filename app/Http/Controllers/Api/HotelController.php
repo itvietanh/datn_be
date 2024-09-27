@@ -9,12 +9,8 @@ use Illuminate\Http\Request;
 // Request
 use App\Http\Requests\HotelRequest;
 
-//Model
-use App\Models\Hotel;
-
 // Service
 use App\Services\Api\HotelService;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class HotelController extends BaseController
 {
@@ -33,7 +29,11 @@ class HotelController extends BaseController
     {
         $fillable = ['uuid', 'name', 'address', 'star_rating', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
-        $searchParams = $req->only(['page', 'size', 'name', 'address']);
+        $searchParams = (object) $req->only(['name', 'address']);
+
+        $where = 'name like' . ' % ' . $searchParams->name . ' % ' . 'and' . ' address like' . '%' . $searchParams->address . '%';
+
+        dd($where);
 
         $data = $this->service->getList($req, $fillable);
 

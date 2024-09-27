@@ -43,15 +43,24 @@ class BaseService
      * 
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getList(Request $request, $columns = ['*'])
+    public function getList(Request $request, $columns = ['*'], $whereParams = null)
     {
         $page = $request->query('page', 1);
         $size = $request->query('size', 20);
 
-        $data = $this->model->select($columns)
-            ->paginate($size, ['*'], 'page', $page);
-
+        $query = $this->model->select($columns) . $whereParams !== null ? 
+        
+        
+        $whereParams : '';
+            
+        $data = $query->paginate($size, ['*'], 'page', $page); 
+        
         return $data;
+    }
+
+    public function filter($query, $filter)
+    {
+        return null;
     }
 
     public function find($id, $with = null)
