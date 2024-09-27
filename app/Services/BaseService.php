@@ -48,10 +48,13 @@ class BaseService
         $page = $request->query('page', 1);
         $size = $request->query('size', 20);
 
-        $query = $this->model->select($columns) . $whereParams !== null ? 
+        $query = $this->model->select($columns);
         
-        
-        $whereParams : '';
+        if ($whereParams) {
+            $query->where($whereParams);
+        }
+
+        dd($query);
             
         $data = $query->paginate($size, ['*'], 'page', $page); 
         
