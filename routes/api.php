@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\EmployeeController;
-use App\Http\Controllers\Api\RoomUsingGuestController;
-use App\Http\Controllers\Api\RoomUsingServiceController;
+use App\Http\Controllers\Api\TransitionController;
 
 Route::group([
     'prefix' => 'system'
@@ -42,35 +41,15 @@ Route::group([
         Route::get('', [RoomController::class, 'index']);
     });
 
-    //service
+    // Giao dịch
+    // Transition 
     Route::group([
-        'prefix' => 'service'
+        'prefix' => 'transition'
     ], function () {
-        Route::get('get-list', [RoomUsingServiceController::class, 'index']);
-        Route::post('', [RoomUsingServiceController::class, 'store']);
-        Route::get('{uuid}', [RoomUsingServiceController::class, 'show']);
-        Route::put('{uuid}', [RoomUsingServiceController::class, 'update']);
-        Route::delete('{uuid}', [RoomUsingServiceController::class, 'destroy']);
-    });
-
-    // Phòng sử dụng dịch vụ (Lmaf service trước mới đúng cchuws)
-    Route::group([
-        'prefix' => 'room-using-service'
-    ], function () {
-        Route::get('get-list', [RoomUsingServiceController::class, 'index']);
-        Route::post('', [RoomUsingServiceController::class, 'store']);
-        Route::get('', [RoomUsingServiceController::class, 'show']);
-        Route::put('', [RoomUsingServiceController::class, 'update']);
-        Route::delete('', [RoomUsingServiceController::class, 'destroy']);
-    });
-
-    Route::group([
-        'prefix' => 'room-using-guest'
-    ], function () {
-        Route::get('get-list', [RoomUsingGuestController::class, 'index']);
-        Route::post('', [RoomUsingGuestController::class, 'store']);
-        Route::get('', [RoomUsingGuestController::class, 'show']);
-        Route::put('', [RoomUsingGuestController::class, 'update']);
-        Route::delete('', [RoomUsingGuestController::class, 'destroy']);
+        Route::get('', [TransitionController::class, 'index']);
+        Route::post('', [TransitionController::class, 'store']);
+        Route::get('{uuid}', [TransitionController::class, 'show']);
+        Route::put('{uuid}', [TransitionController::class, 'update']);
+        Route::delete('{uuid}', [TransitionController::class, 'destroy']);
     });
 });

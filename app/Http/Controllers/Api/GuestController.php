@@ -3,46 +3,37 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
-use App\Http\Controllers\Controller;
+use App\Models\Guest;
 use Illuminate\Http\Request;
 
 // Service
-use App\Services\Api\EmployeeService;
-
-// Request
-use App\Http\Requests\EmployeeRequest;
+use App\Services\Api\GuestService;
 
 class EmployeeController extends BaseController
 {
 
     protected $service;
 
-    public function __construct(EmployeeService $service)
+    public function __construct(GuestService $service)
     {
-        $this->service = $service;
+        $this->service = $service;   
     }
 
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $req)
+    public function index()
     {
-        $column = ['uuid', 'name', 'email', 'phone', 'address', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by'];
-
-        $data = $this->service->getList($req, $column);
-
-        return $this->getPaging($data);
+        return Guest::all();
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(EmployeeRequest $req)
+    public function store(Request $request)
     {
-        //
-        $paramsData = $req->all();
-        $data = $this->service->create($paramsData);
-        return $this->responseSuccess($data, 201);
+        $guest = Guest::create($request->validated());
+        return response()->json($guest, 201);
     }
 
     /**
@@ -50,7 +41,7 @@ class EmployeeController extends BaseController
      */
     public function show(string $id)
     {
-        //
+        return Guest::findOrFail($id);
     }
 
     /**
@@ -58,7 +49,9 @@ class EmployeeController extends BaseController
      */
     public function update(Request $request, string $id)
     {
-        //
+        $guest = Guest::findOrFail($id);
+        $guest->update($request->validated());
+        return response()->json($guest);
     }
 
     /**
@@ -66,6 +59,8 @@ class EmployeeController extends BaseController
      */
     public function destroy(string $id)
     {
-        //
+        $guest = Guest::findOrFail($id);
+        $guest->delete();
+        return response()->json(null, 204);
     }
 }
