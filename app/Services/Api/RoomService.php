@@ -1,14 +1,14 @@
-    <?php
+<?php
 
-    namespace App\Services\Api;
+namespace App\Services\Api;
 
-    use App\Services\BaseService;
+use App\Services\BaseService;
 
-    class RoomService extends BaseService
+class RoomService extends BaseService
+{
+    // Service logic here
+    public function __construct()
     {
-        // Service logic here
-        public function __construct()
-        {
-            // $this->model = new YourModel;
-        }
+        // $this->model = new YourModel;
     }
+}
