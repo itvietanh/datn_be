@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\TransitionController;
+use App\Http\Controllers\Api\GuestController;
 
 Route::group([
     'prefix' => 'system'
@@ -46,10 +47,22 @@ Route::group([
     Route::group([
         'prefix' => 'transition'
     ], function () {
-        Route::get('', [TransitionController::class, 'index']);
+        Route::get('get-list', [TransitionController::class, 'index']);
         Route::post('', [TransitionController::class, 'store']);
         Route::get('{uuid}', [TransitionController::class, 'show']);
         Route::put('{uuid}', [TransitionController::class, 'update']);
         Route::delete('{uuid}', [TransitionController::class, 'destroy']);
+    });
+
+    // Sử dụng PT HTTP chuẩn restful api
+    // Guest
+    Route::group([
+        'prefix' => 'guest'
+    ], function () {
+        Route::get('get-list', [GuestController::class, 'index']);
+        Route::post('', [GuestController::class, 'store']);
+        Route::get('', [GuestController::class, 'show']);
+        Route::put('', [GuestController::class, 'update']);
+        Route::delete('', [GuestController::class, 'destroy']);
     });
 });

@@ -7,7 +7,7 @@ use App\Services\BaseService;
 
 use App\Models\Guest;
 
-class EmployeeService extends BaseService
+class GuestService extends BaseService
 {
     // Service logic here
     public function __construct()
