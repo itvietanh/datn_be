@@ -1,0 +1,92 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Services\Api\RoomUsingService;
+
+use App\Http\Controllers\BaseController;
+
+class RoomUsingController extends BaseController
+{
+    protected $service;
+    public function __construct(RoomUsingService $service){
+        $this->service = $service;
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+
+    public function index(Request $req)
+    {
+        $column= ['uuid','trans_id','room_id','check_in','check_out','is_deleted','created_at','updated_at','created_by','updated_by'];
+        $data = $this->service->getList($req, $column);
+        return $this->getPaging($data);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'trans_id'=>'required',
+            'room_id'=>'required',
+            'check_in'=>'required|date',
+            'check_out'=>'required|date',
+        ]);
+
+
+       $params = $request->all();
+       $room_using = $this->service->create($params);
+       return $this->responseSuccess($room_using,201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Request $request)
+    {
+        $roomUsing = $this->service->findFirstByUuid($request->uuid);
+        if(!$roomUsing) return $this->response404();
+        return $this->oneResponse($roomUsing);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    // public function edit(string $id)
+    // {
+    //     //
+    // }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'trans_id'=>'required',
+            'room_id'=>'required',
+            'check_in'=>'required|date',
+            'check_out'=>'required|date',
+        ]);
+        $roomUsing = $this->service->findFirstByUuid($request->uuid);
+        if(!$roomUsing) return $this->response404();
+        $data = $this->service->update($roomUsing->id, $validated);
+        return $this->responseSuccess($data);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request)
+    {
+        $roomUsing = $this->service->findFirstByUuid($request->uuid);
+        if(!$roomUsing) return $this->response404();
+        $data = $this->service->delete($roomUsing->id);
+        return $this->responseSuccess($roomUsing->uuid);
+    }
+}
