@@ -5,7 +5,7 @@
    use App\Models\RoomUsingGuest as RoomUsingGuestModel;
    use App\Services\BaseService;
 
-    class RoomUsingGuest extends BaseService
+    class RoomUsingGuestService extends BaseService
     {
         // Service logic here
         public function __construct()

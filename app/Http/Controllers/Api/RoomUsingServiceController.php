@@ -27,17 +27,11 @@ class RoomUsingServiceController extends BaseController
             'room_using_id' => 'required|integer',
             'service_id' => 'required|integer',
             'service_using_date' => 'required|date',
-            'created_by' => 'nullable|integer',
         ]);
-        //postman dau nhi
 
         $service = $this->service->create($data);
         return $this->responseSuccess($service, 201);
-
-        //Đó mình làm như này. cái response kia tôi tự build để trả ra chuẩn response cho client
     }
-
-    //đấy làm như này nhé, easy mà nó dễ xử lý nếu gặp trường hợp khó
 
     public function show(Request $req)
     {
@@ -46,47 +40,25 @@ class RoomUsingServiceController extends BaseController
     }
 
 
-    public function update(Request $request, $uuid)
-{
-    // Xác thực dữ liệu đầu vào
-    $data = $request->validate([
-        'room_using_id' => 'required|integer',
-        'service_id' => 'required|integer',
-        'service_using_date' => 'required|date',
-        'updated_by' => 'nullable|integer',
-    ]);
-
-    // Tìm RoomUsingService theo UUID
-    $roomUsingServ = $this->service->findFirstByUuid($uuid);
-
-    // Kiểm tra nếu không tìm thấy
-    if (!$roomUsingServ) {
-        return $this->response404('Room Using Service not found', 404);
+    public function update(Request $req, $uuid)
+    {
+        $roomUsingServ = $this->service->findFirstByUuid($req->uuid);
+        if (!$roomUsingServ) {
+            return $this->response404(); 
+        }
+        $data = $this->service->update($roomUsingServ->id, $req->all());
+        return $this->responseSuccess($data);
     }
 
-    // Cập nhật dữ liệu
-    $roomUsingServ->update($data);
 
-    // Trả về dữ liệu sau khi cập nhật
-    return $this->responseSuccess($roomUsingServ);
-}
-
-
-    public function destroy($uuid)
+public function destroy(Request $req)
 {
-    // Tìm RoomUsingService theo UUID
-    $roomUsingServ = $this->service->findFirstByUuid($uuid);
-
-    // Kiểm tra nếu không tìm thấy
+    $roomUsingServ = $this->service->findFirstByUuid($req->uuid);
     if (!$roomUsingServ) {
-        return $this->response404('Room Using Service not found', 404);
+        return $this->response404(); 
     }
-
-    // Xóa bản ghi
-    $roomUsingServ->delete();
-
-    // Trả về phản hồi thành công
-    return $this->responseSuccess(null, 204);
+    $data = $this->service->delete($roomUsingServ->id);
+    return $this->responseSuccess($data);
 }
 
 
