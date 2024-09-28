@@ -48,9 +48,10 @@ class EmployeeController extends BaseController
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $req)
     {
         //
+         
     }
 
     /**
