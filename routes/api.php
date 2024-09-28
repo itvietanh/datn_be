@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\TransitionController;
 use App\Http\Controllers\Api\GuestController;
 use App\Http\Controllers\Api\FloorController;
+use App\Http\Controllers\Api\RoleController;
 
 Route::group([
     'prefix' => 'system'
@@ -76,5 +77,15 @@ Route::group([
         Route::get('', [FloorController::class, 'show']);
         Route::put('', [FloorController::class, 'update']);
         Route::delete('', [FloorController::class, 'destroy']);
+    });
+    // role
+    Route::group([
+        'prefix' => 'role'
+    ], function () {
+        Route::get('get-list', [RoleController::class, 'index']);
+        Route::post('', [RoleController::class, 'store']);
+        Route::get('', [RoleController::class, 'show']);
+        Route::put('', [RoleController::class, 'update']);
+        Route::delete('', [RoleController::class, 'destroy']);
     });
 });
