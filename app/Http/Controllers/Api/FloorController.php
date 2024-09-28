@@ -43,32 +43,25 @@ class FloorController extends BaseController
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $dataReq = $request->validate([
             'hotel_id' => 'required|integer',
             'floor_number' => 'required|integer'
-
         ]);
 
-        $floor = Floor::create([
-            'uuid' => \Illuminate\Support\Str::uuid(),
-            'hotel_id' => $request->hotel_id,
-            'floor_number' => $request->floor_number
-        ]);
+        $floor = $this->service->create($dataReq);
 
-        return response()->json(['message' => 'Bản ghi đã được thêm thành công!', 'data' => $floor], 201);
+        return $this->responseSuccess($floor, 201);
     }
 
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $req)
     {
-        $floor = Floor::find($id);
-        if (!$floor) {
-            return response()->json(['message' => 'Lỗi'], 404);
-        }
-        return response()->json($floor);
+        $floor = $this->service->findFirstByUuid($req->uuid);
+        if (!$floor) $this->response404();
+        return $this->oneResponse($floor);
     }
 
     /**
@@ -82,36 +75,27 @@ class FloorController extends BaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $req)
     {
-        $floor = Floor::find($id);
-        if (!$floor) {
-            return response()->json(['message' => 'Floor not found'], 404);
-        }
-
-        $request->validate([
-            'floor_number' => 'sometimes|required|integer',
+        $dataReq = $req->validate([
+            'hotel_id' => 'required|integer',
+            'floor_number' => 'required|integer'
         ]);
-
-        // Cập nhật các trường dữ liệu
-        $floor->update($request->only('floor_number'));
-
-        return response()->json(['message' => 'Cập nhật thành công!', 'data' => $floor], 200);
+        $floor = $this->service->findFirstByUuid($req->uuid);
+        if (!$floor) $this->response404();
+        $data = $this->service->update($floor->id, $dataReq);
+        return $this->responseSuccess($data);
     }
-
 
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($uuid)
+    public function destroy(Request $req)
     {
-        $floor = Floor::where('uuid', $uuid)->firstOrFail();
-
-        $floor->delete();
-
-        return $this->responseSuccess([
-            'message' => 'Transition deleted successfully'
-        ]);
+        $floor = $this->service->findFirstByUuid($req->uuid);
+        if (!$floor) $this->response404();
+        $this->service->delete($floor->id);
+        return $this->responseSuccess($floor);
     }
 }
