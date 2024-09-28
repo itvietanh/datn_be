@@ -12,8 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('room_using_service', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+                $table->id();
+                $table->timestamps();
+            // $table->uuid('uuid')->primary();
+            // $table->unsignedBigInteger('room_using_id');
+            // $table->unsignedBigInteger('service_id');
+            // $table->date('service_using_date');
+            // $table->timestamps();
+            // $table->unsignedBigInteger('created_by')->nullable();
+            // $table->unsignedBigInteger('updated_by')->nullable();
         });
     }
 

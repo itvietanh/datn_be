@@ -31,9 +31,15 @@ class HotelController extends BaseController
 
         $searchParams = (object) $req->only(['name', 'address']);
 
-        $where = 'name like' . ' % ' . $searchParams->name . ' % ' . 'and' . ' address like' . ' % ' . $searchParams->address . ' % ';
+        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+            if (!empty($searchParams->name)) {
+                $query->where('name', 'like', '%' . $searchParams->name . '%');
+            }
 
-        $data = $this->service->getList($req, $fillable);
+            if (!empty($searchParams->address)) {
+                $query->where('address', 'like', '%' . $searchParams->address . '%');
+            }
+        });
 
         return $this->getPaging($data);
     }

@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\EmployeeController;
-use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TransitionController;
+use App\Http\Controllers\Api\GuestController;
+use App\Http\Controllers\Api\FloorController;
 
 Route::group([
     'prefix' => 'system'
@@ -47,23 +48,33 @@ Route::group([
     Route::group([
         'prefix' => 'transition'
     ], function () {
-        Route::get('', [TransitionController::class, 'index']);
+        Route::get('get-list', [TransitionController::class, 'index']);
         Route::post('', [TransitionController::class, 'store']);
         Route::get('{uuid}', [TransitionController::class, 'show']);
         Route::put('{uuid}', [TransitionController::class, 'update']);
         Route::delete('{uuid}', [TransitionController::class, 'destroy']);
     });
 
-
-
-    // Role
+    // Sử dụng PT HTTP chuẩn restful api
+    // Guest
     Route::group([
-        'prefix' => 'role'
+        'prefix' => 'guest'
     ], function () {
-        Route::get('', [RoleController::class, 'index']);
-        Route::post('', [RoleController::class, 'store']);
-        Route::get('', [RoleController::class, 'show']);
-        Route::put('', [RoleController::class, 'update']);
-        Route::delete('', [RoleController::class, 'destroy']);
+        Route::get('get-list', [GuestController::class, 'index']);
+        Route::post('', [GuestController::class, 'store']);
+        Route::get('', [GuestController::class, 'show']);
+        Route::put('', [GuestController::class, 'update']);
+        Route::delete('', [GuestController::class, 'destroy']);
+    });
+
+    // Floor
+    Route::group([
+        'prefix' => 'floor'
+    ], function () {
+        Route::get('get-list', [FloorController::class, 'index']);
+        Route::post('', [FloorController::class, 'store']);
+        Route::get('', [FloorController::class, 'show']);
+        Route::put('', [FloorController::class, 'update']);
+        Route::delete('', [FloorController::class, 'destroy']);
     });
 });
