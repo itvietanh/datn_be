@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\FloorController;
 use App\Http\Controllers\Api\TransitionController;
 
 Route::group([
@@ -51,5 +52,15 @@ Route::group([
         Route::get('{uuid}', [TransitionController::class, 'show']);
         Route::put('{uuid}', [TransitionController::class, 'update']);
         Route::delete('{uuid}', [TransitionController::class, 'destroy']);
+    });
+    // Floor
+    Route::group([
+        'prefix' => 'floor'
+    ], function () {
+        Route::get('get-list', [FloorController::class, 'index']);
+        Route::post('', [FloorController::class, 'store']);
+        Route::get('{uuid}', [FloorController::class, 'show']);
+        Route::put('{uuid}', [FloorController::class, 'update']);
+        Route::delete('{uuid}', [FloorController::class, 'destroy']);
     });
 });

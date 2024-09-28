@@ -54,7 +54,7 @@ class BaseService
             $query->where($whereParams);
         }
 
-        dd($query);
+        // dd($query);
             
         $data = $query->paginate($size, ['*'], 'page', $page); 
         
