@@ -3,67 +3,98 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use Illuminate\Http\Request;
+use App\Http\Controllers\BaseController;
+use App\Services\Api\RoleService;
 
-class RoleController extends Controller
+class RoleController extends BaseController
 {
-
-    public function index()
+    protected $service;
+    public function __construct(RoleService $service)
     {
-        $fillable = ['uuid','role_name','description','created_at','updated_at','created_by','updated_by'];
-        $data = Role::select($fillable)->paginate($req->input('size:10'));
+        $this->service = $service;
+    }
+    public function index(Request $request)
+    {
+        $columns = ['uuid', 'role_name', 'description', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+
+        $searchParams = (object) $request->only(['role_name', 'description']);
+
+        $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
+
+            if (isset($searchParams->role_name)) {
+                $query->where('role_name', 'LIKE', '%' . $searchParams->role_name . '%');
+            }
+            if (isset($searchParams->description)) {
+                $query->where('description', 'LIKE', '%' . $searchParams->description . '%');
+            }
+        });
         return $this->getPaging($data);
     }
+    /**
+     * Show the form for creating a new resource.
+     */
+    // public function create() {}
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        $validated = $req->validate([
-            'role_name'=>'required|string',
-            'description'=>'required|string',
+        $dataRe = $request->validate([
+            'role_name' => 'required|integer',
+            'description' => 'required|integer',
         ]);
 
-        $params = $req->all();
-        $validated = $req->all();
-        $role = Role::create([
-            'uuid'=> \Illumante\Support\Str::uuid(),
-            'role_name' => $validated['role_name'],
-            'description' => $validated['description']
-        ]);
-        return  $this->responseSuccess($role,201);
+        $Role = $this->service->create($dataRe);
+
+        return $this->responseSuccess($Role, 201);
     }
 
 
-    public function show(string $id)
+    /**
+     * Display the specified resource.
+     */
+    public function show(Request $req)
     {
-        $role = Role::where('uuid',$uuid)->firstOrFail();
+        $role = $this->service->findFirstByUuid($req->uuid);
+        if (!$role) $this->response404();
         return $this->oneResponse($role);
     }
 
+    /**
+     * Show the form for editing the specified resource.
+     */
+    // public function edit(string $id)
+    // {
+    //     //
+    // }
 
-    public function update(Request $request, string $id)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $req)
     {
-        $validated = $req->validate([
-            'role_name'=> 'required|string',
-            'description'=>'required|string',
+        $dataRe = $req->validate([
+            'role_name' => 'required|integer',
+            'description' => 'required|integer'
         ]);
-        $role = Role::where('uuid',$uuid)->firstOrFail();
-        $role->update([
-            'role_name'=>$validated['role_name'],
-            'description'=>$validated['desctiption'],
-            'updated_at'=>now(),
-        ]);
-        return $this->responseSuccess($role);
+        $role = $this->service->findFirstByUuid($req->uuid);
+        if (!$role) $this->response404();
+        $data = $this->service->update($role->id,$dataRe);
+        return $this->responseSuccess($data);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $req)
     {
-        $role = Role::where('uuid',$uuid)->firstOrFail();
-        $role-> delete();
-        return $this->responseSuccess([
-            'message'=>'Role deleted successfully'
-        ]);
+        $role = $this->service->findFirstByUuid($req->uuid);
+        if (!$role) $this->response404();
+        $this->service->delete($role->id);
+        return $this->responseSuccess($role);
     }
 }
