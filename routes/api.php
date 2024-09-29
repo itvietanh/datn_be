@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\TransitionController;
 use App\Http\Controllers\Api\GuestController;
 use App\Http\Controllers\Api\FloorController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\ServiceController;
+
 
 Route::group([
     'prefix' => 'system'
@@ -87,5 +89,16 @@ Route::group([
         Route::get('', [RoleController::class, 'show']);
         Route::put('', [RoleController::class, 'update']);
         Route::delete('', [RoleController::class, 'destroy']);
+    });
+
+    // Service
+    Route::group([
+        'prefix' => 'service'
+    ], function () {
+        Route::get('get-list', [ServiceController::class, 'index']);
+        Route::post('', [ServiceController::class, 'store']);
+        Route::get('', [ServiceController::class, 'show']);
+        Route::put('', [ServiceController::class, 'update']);
+        Route::delete('', [ServiceController::class, 'destroy']);
     });
 });
