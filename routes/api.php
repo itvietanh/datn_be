@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\GuestController;
 use App\Http\Controllers\Api\FloorController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\EmployeeRoleController;
+
 
 
 Route::group([
@@ -80,6 +82,18 @@ Route::group([
         Route::put('', [FloorController::class, 'update']);
         Route::delete('', [FloorController::class, 'destroy']);
     });
+
+    //EmployeeRole
+    Route::group([
+        'prefix' => 'employee-role'
+    ], function () {
+        Route::get('get-list', [EmployeeRoleController::class, 'index']);
+        Route::post('', [EmployeeRoleController::class, 'store']);
+        Route::get('', [EmployeeRoleController::class, 'show']);
+        Route::put('', [EmployeeRoleController::class, 'update']);
+        Route::delete('', [EmployeeRoleController::class, 'destroy']);
+    });
+
     // role
     Route::group([
         'prefix' => 'role'
