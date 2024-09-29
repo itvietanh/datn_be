@@ -49,15 +49,13 @@ class BaseService
         $size = $request->query('size', 20);
 
         $query = $this->model->select($columns);
-        
-        if ($whereParams) {
-            $query->where($whereParams);
+
+        if ($whereParams && is_callable($whereParams)) {
+            $query = $query->where($whereParams);
         }
 
-        dd($query);
-            
-        $data = $query->paginate($size, ['*'], 'page', $page); 
-        
+        $data = $query->paginate($size, ['*'], 'page', $page);
+
         return $data;
     }
 

@@ -3,14 +3,13 @@
 namespace App\Services\Api;
 
 use App\Services\BaseService;
+use App\Models\Floor;
 
-use App\Models\Employee;
-
-class EmployeeService extends BaseService
+class FloorService extends BaseService
 {
     // Service logic here
     public function __construct()
     {
-        $this->model = new Employee();
+        $this->model = new Floor();
     }
 }
