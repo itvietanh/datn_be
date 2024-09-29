@@ -3,15 +3,25 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
-use App\Http\Controllers\Controller;
+
 use Illuminate\Http\Request;
 
-// Model
-use App\Models\Transition;
-use App\Models\Guest;
+// Request
+use App\Http\Requests\TransitionRequest;
+// Service
+use App\Services\Api\TransitionService;
+
 
 class TransitionController extends BaseController
 {
+    protected $service;
+
+    public function __construct(TransitionService $service)
+    {
+        $this->service = $service;
+    }
+
+
     /**
      * Lấy danh sách tất cả các transitions
      */
@@ -19,7 +29,7 @@ class TransitionController extends BaseController
     {
         $fillable = ['uuid', 'guest_id', 'transition_date', 'payment_status', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
-        $data = Transition::select($fillable)->paginate($req->input('size', 10));
+        $data = $this->service->getList($req, $fillable);
 
         return $this->getPaging($data);
     }
@@ -29,66 +39,44 @@ class TransitionController extends BaseController
      */
     public function store(Request $req)
     {
-        $validated = $req->validate([
-            'guest_id' => 'required|exists:guest,id',
-            'transition_date' => 'required|date',
-            'payment_status' => 'required|integer',
-        ]);
-
         $params = $req->all();
-        $transition = Transition::create([
-            'uuid' => \Illuminate\Support\Str::uuid(),
-            'guest_id' => $validated['guest_id'],
-            'transition_date' => $validated['transition_date'],
-            'payment_status' => $validated['payment_status']
-        ]);
-
+        $transition = $this->service->create($params);
         return $this->responseSuccess($transition, 201);
     }
 
     /**
      * Hiển thị một transition
      */
-    public function show(Request $req, $uuid)
+    public function show(Request $req)
     {
-        $transition = Transition::where('uuid', $uuid)->firstOrFail();
-        return $this->oneResponse($transition);
+        $data = $this->service->findFirstByUuid($req->uuid);
+        return $this->oneResponse($data);
     }
+
 
     /**
      * Cập nhật một transition
      */
-    public function update(Request $req, $uuid)
+    public function update(TransitionRequest $req)
     {
-        $validated = $req->validate([
-            'guest_id' => 'required|exists:guest,id',
-            'transition_date' => 'required|date',
-            'payment_status' => 'required|boolean',
-        ]);
-
-        $transition = Transition::where('uuid', $uuid)->firstOrFail();
-
-        $transition->update([
-            'guest_id' => $validated['guest_id'],
-            'transition_date' => $validated['transition_date'],
-            'payment_status' => $validated['payment_status'],
-            'updated_at' => now(),
-        ]);
-
-        return $this->responseSuccess($transition);
+        $transition = $this->service->findFirstByUuid($req->uuid);
+        if (!$transition) {
+            return $this->response404();
+        }
+        $data = $this->service->update($transition->id, $req->all());
+        return $this->responseSuccess($data);
     }
 
     /**
      * Xóa một transition
      */
-    public function destroy($uuid)
+    public function destroy(Request $req)
     {
-        $transition = Transition::where('uuid', $uuid)->firstOrFail();
-
-        $transition->delete();
-
-        return $this->responseSuccess([
-            'message' => 'Transition deleted successfully'
-        ]);
+        $transition = $this->service->findFirstByUuid($req->uuid);
+        if (!$transition) {
+            return $this->response404();
+        }
+        $data = $this->service->delete($transition->id);
+        return $this->responseSuccess($data);
     }
 }
