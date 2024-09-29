@@ -46,10 +46,10 @@ Route::group([
     Route::group([
         'prefix' => 'transition'
     ], function () {
-        Route::get('', [TransitionController::class, 'index']);
+        Route::get('get-list', [TransitionController::class, 'index']);
         Route::post('', [TransitionController::class, 'store']);
-        Route::get('{uuid}', [TransitionController::class, 'show']);
-        Route::put('{uuid}', [TransitionController::class, 'update']);
-        Route::delete('{uuid}', [TransitionController::class, 'destroy']);
+        Route::get('', [TransitionController::class, 'show']);
+        Route::put('', [TransitionController::class, 'update']);
+        Route::delete('', [TransitionController::class, 'destroy']);
     });
 });
