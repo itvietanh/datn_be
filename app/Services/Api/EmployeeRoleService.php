@@ -4,13 +4,13 @@ namespace App\Services\Api;
 
 use App\Services\BaseService;
 
-use App\Models\RoomUsing;
+use App\Models\EmployeeRole;
 
-class RoomUsingService extends BaseService
+class EmployeeRoleService extends BaseService
 {
     // Service logic here
     public function __construct()
     {
-        $this->model = new RoomUsing();
+        $this->model = new EmployeeRole();
     }
 }
