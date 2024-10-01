@@ -21,6 +21,7 @@ class FloorSeeder extends Seeder
                 'uuid' => Str::uuid(),
                 'hotel_id' => $guestIds[array_rand($guestIds)],
                 'floor_number' => $i,
+
                 'created_at' => now(),
                 'updated_at' => now(),
                 'created_by' => 'admin',
