@@ -45,17 +45,17 @@ class FloorController extends BaseController
 
     public function getCombobox(Request $req)
     {
-        $fillable = ['uuid as value', DB::raw("CONCAT('Phòng ', floor_number) as label")];
+        $fillable = ['id as value', DB::raw("CONCAT('Phòng ', floor_number) as label")];
 
-        $searchParams = (object) $req->only(['uuid', 'q']);
+        $searchParams = (object) $req->only(['id', 'q']);
 
         $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
             if (!empty($searchParams->q)) {
                 $query->where('name', 'like', '%' . $searchParams->q . '%');
             }
 
-            if (!empty($searchParams->uuid)) {
-                $query->where('uuid', '=', $searchParams->uuid);
+            if (!empty($searchParams->id)) {
+                $query->where('id', '=', $searchParams->id);
             }
         });
 

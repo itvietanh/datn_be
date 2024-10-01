@@ -4,14 +4,13 @@ namespace App\Services\Api;
 
 use App\Services\BaseService;
 
-use App\Models\Room;
+use App\Models\RoomType;
 
-class RoomService extends BaseService
+class RoomTypeService extends BaseService
 {
     // Service logic here
     public function __construct()
     {
-        // $this->model = new YourModel;
-        $this->model = new Room();
+        $this->model = new RoomType();
     }
 }

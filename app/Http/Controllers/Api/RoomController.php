@@ -6,17 +6,34 @@ use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-use App\Models\Room;
+use App\Services\Api\RoomService;
 
 class RoomController extends BaseController
 {
+
+    protected $service;
+
+    public function __construct(RoomService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $req)
     {
-        $fillAble = ['uuid', 'hotel_id', 'floor_id', 'room_type_id', 'room_number', 'status', 'max_capacity','created_at', 'updated_at', 'created_by', 'updated_by'];
-        return $this->getPaging(Room::query(), $req, $fillAble);
+        $column = ['uuid', 'hotel_id', 'floor_id', 'room_type_id', 'room_number', 'status', 'max_capacity','created_at', 'updated_at', 'created_by', 'updated_by'];
+        $searchParams = (object) $req->only(['hotel_id', 'room_number']);
+        $data = $this->service->getList($req, $column, function($query) use ($searchParams) {
+            if (isset($searchParams->hotel_id)) {
+                $query->where('room.hotel_id', '=', $searchParams->hotel_id);
+            }
+            if (isset($searchParams->room_number)) {
+                $query->where('room.room_number', '=', $searchParams->floor_number);
+            }
+        });
+        return $this->getPaging($data);
     }
 
     /**
@@ -25,29 +42,41 @@ class RoomController extends BaseController
     public function store(Request $request)
     {
         //
+        $dataReq = $request->all();
+        $data = $this->service->create($dataReq);
+        return $this->responseSuccess($data, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $req)
     {
-        //
+        $room = $this->service->findFirstByUuid($req->uuid);
+        if (!$room) $this->response404();
+        return $this->oneResponse($room);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $req)
     {
-        //
+        $dataReq = $req->all();
+        $room = $this->service->findFirstByUuid($req->uuid);
+        if (!$room) $this->response404();
+        $data = $this->service->update($room->id, $dataReq);
+        return $this->responseSuccess($data);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $req)
     {
-        //
+        $room = $this->service->findFirstByUuid($req->uuid);
+        if (!$room) $this->response404();
+        $this->service->delete($room->id);
+        return $this->responseSuccess($room);
     }
 }

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 //Controller
 use App\Http\Controllers\Api\RoomController;
+use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\TransitionController;
@@ -46,7 +47,24 @@ Route::group([
     Route::group([
         'prefix' => 'room'
     ], function () {
-        Route::get('', [RoomController::class, 'index']);
+        Route::get('get-list', [RoomController::class, 'index']);
+        Route::get('options', [RoomController::class, 'getCombobox']);
+        Route::post('', [RoomController::class, 'store']);
+        Route::get('', [RoomController::class, 'show']);
+        Route::put('', [RoomController::class, 'update']);
+        Route::delete('', [RoomController::class, 'destroy']);
+    });
+
+    // Phòng
+    Route::group([
+        'prefix' => 'room-type'
+    ], function () {
+        Route::get('get-list', [RoomTypeController::class, 'index']);
+        Route::get('options', [RoomTypeController::class, 'getCombobox']);
+        Route::post('', [RoomTypeController::class, 'store']);
+        Route::get('', [RoomTypeController::class, 'show']);
+        Route::put('', [RoomTypeController::class, 'update']);
+        Route::delete('', [RoomTypeController::class, 'destroy']);
     });
 
     // Giao dịch
