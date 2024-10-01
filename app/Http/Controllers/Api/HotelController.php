@@ -44,6 +44,25 @@ class HotelController extends BaseController
         return $this->getPaging($data);
     }
 
+    public function getCombobox(Request $req)
+    {
+        $fillable = ['uuid as value', 'name as label'];
+
+        $searchParams = (object) $req->only(['uuid', 'q']);
+
+        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+            if (!empty($searchParams->q)) {
+                $query->where('name', 'like', '%' . $searchParams->q . '%');
+            }
+
+            if (!empty($searchParams->uuid)) {
+                $query->where('uuid', '=', $searchParams->uuid);
+            }
+        });
+
+        return $this->getPaging($data);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

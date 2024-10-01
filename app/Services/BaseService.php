@@ -51,7 +51,7 @@ class BaseService
         $query = $this->model->select($columns);
 
         if ($whereParams && is_callable($whereParams)) {
-            $query = $query->where($whereParams);
+            $whereParams($query);
         }
 
         $data = $query->paginate($size, ['*'], 'page', $page);
@@ -59,10 +59,23 @@ class BaseService
         return $data;
     }
 
-    public function filter($query, $filter)
+    public function getListByWith(Request $request, array $columns = ['*'], callable $whereParams = null, array $with = [])
     {
-        return null;
+        // Lấy thông tin phân trang từ request(Nếu null thì sử dụng giá trị mặc định)
+        $page = (int) $request->query('page', 1);
+        $size = (int) $request->query('size', 20);
+
+        // Khởi tạo truy vấn với các cột được chỉ định và với mối quan hệ
+        $query = $this->model->with($with)->select($columns);
+        // Thực hiện các điều kiện (join, where)
+        if ($whereParams && is_callable($whereParams)) {
+            $whereParams($query);
+        }
+        $data = $query->paginate($size, ['*'], 'page', $page);
+
+        return $data;
     }
+
 
     public function find($id, $with = null)
     {

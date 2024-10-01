@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\Floor;
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\Http\Request;
 use App\Http\Controllers\BaseController;
 use App\Services\Api\FloorService;
@@ -15,20 +15,50 @@ class FloorController extends BaseController
     {
         $this->service = $service;
     }
+
     public function index(Request $request)
     {
-        $columns = ['uuid', 'hotel_id', 'floor_number', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+        $columns = [
+            'floor.id',
+            'floor.uuid',
+            'floor.hotel_id as hotelId',
+            'floor.floor_number as floorNumber',
+            'floor.created_at as createdAt',
+            'floor.updated_at as createdBy',
+        ];
 
         $searchParams = (object) $request->only(['hotel_id', 'floor_number']);
 
-        $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
+        $data = $this->service->getListByWith($request, $columns, function ($query) use ($searchParams) {
+            $query->join('hotel', 'floor.hotel_id', '=', 'hotel.id');
+    
             if (isset($searchParams->hotel_id)) {
-                $query->where('hotel_id', '=', $searchParams->hotel_id);
+                $query->where('floor.hotel_id', '=', $searchParams->hotel_id);
             }
             if (isset($searchParams->floor_number)) {
-                $query->where('floor_number', '=', $searchParams->floor_number);
+                $query->where('floor.floor_number', '=', $searchParams->floor_number);
+            }
+        }, ['rooms:id,room_number as roomNumber,status,max_capacity as maxCapacity,floor_id']);
+
+        return $this->getPaging($data);
+    }
+
+    public function getCombobox(Request $req)
+    {
+        $fillable = ['uuid as value', DB::raw("CONCAT('Phòng ', floor_number) as label")];
+
+        $searchParams = (object) $req->only(['uuid', 'q']);
+
+        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+            if (!empty($searchParams->q)) {
+                $query->where('name', 'like', '%' . $searchParams->q . '%');
+            }
+
+            if (!empty($searchParams->uuid)) {
+                $query->where('uuid', '=', $searchParams->uuid);
             }
         });
+
         return $this->getPaging($data);
     }
 

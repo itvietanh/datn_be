@@ -14,4 +14,9 @@ class Room extends Model
     protected $fillable = ['uuid', 'hotel_id', 'floor_id', 'room_type_id', 'room_number', 'status', 'max_capacity','created_at', 'updated_at', 'created_by', 'updated_by'];
 
     public $timestamps = true;
+
+    public function floor()
+    {
+        return $this->belongsTo(Floor::class, 'floor_id', 'id');
+    }
 }

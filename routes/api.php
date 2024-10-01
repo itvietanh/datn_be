@@ -21,6 +21,7 @@ Route::group([
         'prefix' => 'hotel'
     ], function () {
         Route::get('get-list', [HotelController::class, 'index']);
+        Route::get('options', [HotelController::class, 'getCombobox']);
         Route::post('', [HotelController::class, 'store']);
         Route::get('', [HotelController::class, 'show']);
         Route::put('', [HotelController::class, 'update']);
@@ -74,6 +75,7 @@ Route::group([
         'prefix' => 'floor'
     ], function () {
         Route::get('get-list', [FloorController::class, 'index']);
+        Route::get('options', [FloorController::class, 'getCombobox']);
         Route::post('', [FloorController::class, 'store']);
         Route::get('', [FloorController::class, 'show']);
         Route::put('', [FloorController::class, 'update']);
