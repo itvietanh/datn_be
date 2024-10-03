@@ -14,8 +14,9 @@ use App\Http\Controllers\Api\FloorController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\EmployeeRoleController;
-
-
+use App\Http\Controllers\Api\RoomUsingController;
+use App\Http\Controllers\Api\RoomUsingGuestController;
+use App\Http\Controllers\Api\RoomUsingServiceController;
 
 Route::group([
     'prefix' => 'system'
@@ -125,11 +126,44 @@ Route::group([
         Route::delete('', [RoleController::class, 'destroy']);
     });
 
+    Route::group([
+        'prefix' => 'room-using'
+    ], function () {
+        Route::get('get-list', [RoomUsingController::class, 'index']);
+        Route::post('', [RoomUsingController::class, 'store']);
+        Route::get('', [RoomUsingController::class, 'show']);
+        Route::put('', [RoomUsingController::class, 'update']);
+        Route::delete('', [RoomUsingController::class, 'destroy']);
+    });
+
+    // Phòng sử dụng dịch vụ (Lmaf service trước mới đúng cchuws)
+    Route::group([
+        'prefix' => 'room-using-service'
+    ], function () {
+        Route::get('get-list', [RoomUsingServiceController::class, 'index']);
+        Route::post('', [RoomUsingServiceController::class, 'store']);
+        Route::get('', [RoomUsingServiceController::class, 'show']);
+        Route::put('', [RoomUsingServiceController::class, 'update']); 
+        Route::delete('', [RoomUsingServiceController::class, 'destroy']);
+    });
+
+    //room-using-guest
+    Route::group([
+        'prefix' => 'room-using-guest'
+    ], function () {
+        Route::get('get-list', [RoomUsingGuestController::class, 'index']);
+        Route::post('', [RoomUsingGuestController::class, 'store']);
+        Route::get('', [RoomUsingGuestController::class, 'show']);
+        Route::put('', [RoomUsingGuestController::class, 'update']);
+        Route::delete('', [RoomUsingGuestController::class, 'destroy']);
+    });
+
     // Service
     Route::group([
         'prefix' => 'service'
     ], function () {
         Route::get('get-list', [ServiceController::class, 'index']);
+        Route::get('options', [ServiceController::class, 'getCombobox']);
         Route::post('', [ServiceController::class, 'store']);
         Route::get('', [ServiceController::class, 'show']);
         Route::put('', [ServiceController::class, 'update']);

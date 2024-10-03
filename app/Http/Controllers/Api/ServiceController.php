@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Api\ServiceService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\BaseController;
+use illuminate\Support\Facades\DB;
 
 class ServiceController extends BaseController
 {
@@ -34,6 +35,24 @@ class ServiceController extends BaseController
         return $this->getPaging($data);
     }
 
+    public function getCombobox(Request $req)
+    {
+        $fillable = ['id as value', 'service_name as label'];
+
+        $searchParams = (object) $req->only(['id', 'q']);
+
+        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+            if (!empty($searchParams->q)) {
+                $query->where('name', 'like', '%' . $searchParams->q . '%');
+            }
+
+            if (!empty($searchParams->id)) {
+                $query->where('id', '=', $searchParams->id);
+            }
+        });
+
+        return $this->getPaging($data);
+    }
 
     /**
      * Store a newly created resource in storage.
