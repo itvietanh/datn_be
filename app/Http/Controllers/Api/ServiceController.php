@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Api\ServiceService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\BaseController;
+
 class ServiceController extends BaseController
 {
     /**
@@ -18,7 +19,7 @@ class ServiceController extends BaseController
     }
     public function index(Request $request)
     {
-        $columns = ['uuid', 'service_name', 'service_price' ,'created_at', 'updated_at', 'created_by', 'updated_by'];
+        $columns = ['uuid', 'service_name', 'service_price', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
         $searchParams = (object) $request->only(['service_name', 'service_price']);
 
@@ -37,16 +38,17 @@ class ServiceController extends BaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)  
-    {  
-        $data = $request->validate([  
-            'service_name' => 'required|string',   
-            'service_price' => 'required|numeric'  
-        ]);  
-    
-        $service = $this->service->create($data);  
-    
-        return $this->responseSuccess($service, 201);  
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'service_name' => 'required|string',
+            'service_price' => 'required|numeric',
+            'hotel_id' => 'required|numeric'
+        ]);
+
+        $service = $this->service->create($data);
+
+        return $this->responseSuccess($service, 201);
     }
     /**
      * Display the specified resource.
@@ -58,7 +60,7 @@ class ServiceController extends BaseController
         return $this->oneResponse($service);
     }
 
- 
+
 
     /**
      * Update the specified resource in storage.
@@ -67,7 +69,8 @@ class ServiceController extends BaseController
     {
         $dataReq = $req->validate([
             'service_name' => 'required|integer',
-            'service_price' => 'required'
+            'service_price' => 'required',
+            'hotel_id' => 'required|numeric'
         ]);
         $service = $this->service->findFirstByUuid($req->uuid);
         if (!$service) $this->response404();

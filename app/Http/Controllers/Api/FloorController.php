@@ -45,7 +45,7 @@ class FloorController extends BaseController
 
     public function getCombobox(Request $req)
     {
-        $fillable = ['id as value', DB::raw("CONCAT('Phòng ', floor_number) as label")];
+        $fillable = ['id as value', DB::raw("CONCAT('Tầng ', floor_number) as label")];
 
         $searchParams = (object) $req->only(['id', 'q']);
 
