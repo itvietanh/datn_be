@@ -41,7 +41,7 @@ class ServiceController extends BaseController
 
         $searchParams = (object) $req->only(['id', 'q']);
 
-        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+        $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
             if (!empty($searchParams->q)) {
                 $query->where('name', 'like', '%' . $searchParams->q . '%');
             }
@@ -74,8 +74,10 @@ class ServiceController extends BaseController
      */
     public function show(Request $req)
     {
-        $service = $this->service->findFirstByUuid($req->uuid);
-        if (!$service) $this->response404();
+        $service = $this->service->findFirstByUuid($req->uuid, 'hotel');
+        if (!$service) {
+            return $this->response404();
+        }
         return $this->oneResponse($service);
     }
 
