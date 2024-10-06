@@ -11,6 +11,7 @@ use App\Http\Requests\GuestRequest;
 use App\Models\Guest;
 // Service
 use App\Services\Api\GuestService;
+use Illuminate\Support\Facades\DB;
 
 class GuestController extends BaseController
 
@@ -28,7 +29,7 @@ class GuestController extends BaseController
     {
 
         $column = ['uuid', 'name', 'contact_details', 'id_number', 'passport_number', 'created_at', 'updated_at', 'created_by', 'updated_by'];
-        
+
         $searchParams = (object) $request->only(['name, id_number']);
 
         $data = $this->service->getList($request, $column, function ($query) use ($searchParams) {
@@ -42,6 +43,25 @@ class GuestController extends BaseController
         });
         return $this->getPaging($data);
     }
+    public function getCombobox(Request $req)
+    {
+        $fillable = ['id as value', "name as label"];
+
+        $searchParams = (object) $req->only(['id', 'q']);
+
+        $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
+            if (!empty($searchParams->q)) {
+                $query->where('name', 'like', '%' . $searchParams->q . '%');
+            }
+
+            if (!empty($searchParams->id)) {
+                $query->where('id', '=', $searchParams->id);
+            }
+        });
+
+        return $this->getPaging($data);
+    }
+
 
     public function store(GuestRequest $request)
     {
@@ -66,7 +86,7 @@ class GuestController extends BaseController
     {
         $guest = $this->service->findFirstByUuid($request->uuid);
         if (!$guest) {
-            return $this->response404(); 
+            return $this->response404();
         }
         $data = $this->service->update($guest->id, $request->all());
         return $this->responseSuccess($data);
@@ -79,7 +99,7 @@ class GuestController extends BaseController
     {
         $guest = $this->service->findFirstByUuid($request->uuid);
         if (!$guest) {
-            return $this->response404(); 
+            return $this->response404();
         }
         $data = $this->service->delete($guest->id);
         return $this->responseSuccess($data);
