@@ -20,11 +20,12 @@ class ServiceController extends BaseController
     }
     public function index(Request $request)
     {
-        $columns = ['uuid', 'service_name', 'service_price', 'created_at', 'updated_at', 'created_by', 'updated_by'];
-
+        $columns = ['uuid', 'service_name', 'service_price', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+    
         $searchParams = (object) $request->only(['service_name', 'service_price']);
-
+    
         $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
+            $query->with('hotel'); 
             if (isset($searchParams->service_name)) {
                 $query->where('service_name', '=', $searchParams->service_name);
             }
@@ -75,9 +76,7 @@ class ServiceController extends BaseController
     public function show(Request $req)
     {
         $service = $this->service->findFirstByUuid($req->uuid, 'hotel');
-        if (!$service) {
-            return $this->response404();
-        }
+        if (!$service) $this->response404();
         return $this->oneResponse($service);
     }
 
