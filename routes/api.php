@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\EmployeeRoleController;
 use App\Http\Controllers\Api\RoomUsingController;
 use App\Http\Controllers\Api\RoomUsingGuestController;
 use App\Http\Controllers\Api\RoomUsingServiceController;
+use App\Http\Controllers\Api\Categories\DiaChinhController;
 
 Route::group([
     'prefix' => 'system'
@@ -69,7 +70,7 @@ Route::group([
     });
 
     // Giao dịch
-    // Transition 
+    // Transition
     Route::group([
         'prefix' => 'transition'
     ], function () {
@@ -86,6 +87,7 @@ Route::group([
         'prefix' => 'guest'
     ], function () {
         Route::get('get-list', [GuestController::class, 'index']);
+        Route::get('options', [GuestController::class, 'getCombobox']);
         Route::post('', [GuestController::class, 'store']);
         Route::get('', [GuestController::class, 'show']);
         Route::put('', [GuestController::class, 'update']);
@@ -143,7 +145,7 @@ Route::group([
         Route::get('get-list', [RoomUsingServiceController::class, 'index']);
         Route::post('', [RoomUsingServiceController::class, 'store']);
         Route::get('', [RoomUsingServiceController::class, 'show']);
-        Route::put('', [RoomUsingServiceController::class, 'update']); 
+        Route::put('', [RoomUsingServiceController::class, 'update']);
         Route::delete('', [RoomUsingServiceController::class, 'destroy']);
     });
 
@@ -168,5 +170,11 @@ Route::group([
         Route::get('', [ServiceController::class, 'show']);
         Route::put('', [ServiceController::class, 'update']);
         Route::delete('', [ServiceController::class, 'destroy']);
+    });
+
+    Route::group([
+        'prefix' => 'categories/diachinh'
+    ], function () {
+        Route::get('options', [DiaChinhController::class, 'getCombobox']);
     });
 });
