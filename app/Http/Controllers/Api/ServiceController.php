@@ -20,9 +20,9 @@ class ServiceController extends BaseController
     }
     public function index(Request $request)
     {
-        $columns = ['uuid', 'service_name', 'service_price', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+        $columns = ['uuid', 'service_name', 'service_price', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
-        $searchParams = (object) $request->only(['service_name', 'service_price']);
+        $searchParams = (object) $request->only(['service_name', 'service_price', 'hotel_id']);
 
         $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
             if (isset($searchParams->service_name)) {
@@ -89,7 +89,7 @@ class ServiceController extends BaseController
     public function update(Request $req)
     {
         $dataReq = $req->validate([
-            'service_name' => 'required|integer',
+            'service_name' => 'required',
             'service_price' => 'required',
             'hotel_id' => 'required|numeric'
         ]);

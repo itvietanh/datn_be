@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\EmployeeRoleController;
 use App\Http\Controllers\Api\RoomUsingController;
 use App\Http\Controllers\Api\RoomUsingGuestController;
 use App\Http\Controllers\Api\RoomUsingServiceController;
+use App\Http\Controllers\Api\Categories\DiaChinhController;
 
 Route::group([
     'prefix' => 'system'
@@ -169,5 +170,11 @@ Route::group([
         Route::get('', [ServiceController::class, 'show']);
         Route::put('', [ServiceController::class, 'update']);
         Route::delete('', [ServiceController::class, 'destroy']);
+    });
+
+    Route::group([
+        'prefix' => 'categories/diachinh'
+    ], function () {
+        Route::get('options', [DiaChinhController::class, 'getCombobox']);
     });
 });
