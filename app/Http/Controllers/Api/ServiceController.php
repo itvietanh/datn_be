@@ -20,7 +20,7 @@ class ServiceController extends BaseController
     }
     public function index(Request $request)
     {
-        $columns = ['uuid', 'service_name', 'service_price', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+        $columns = ['uuid', 'service_name','hotel_id', 'service_price', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
         $searchParams = (object) $request->only(['service_name', 'service_price']);
 

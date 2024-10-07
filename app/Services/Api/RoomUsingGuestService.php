@@ -1,16 +1,14 @@
 <?php
 
- namespace App\Services\Api;
+namespace App\Services\Api;
 
-   use App\Models\RoomUsingGuest as RoomUsingGuestModel;
-   use App\Services\BaseService;
+use App\Models\RoomUsingGuest; 
+use App\Services\BaseService;
 
-    class RoomUsingGuestService extends BaseService
+class RoomUsingGuestService extends BaseService
+{
+    public function __construct()
     {
-        // Service logic here
-        public function __construct()
-        {
-           
-            $this->model = new RoomUsingGuestModel();
-        }
+        $this->model = new RoomUsingGuest(); 
     }
+}

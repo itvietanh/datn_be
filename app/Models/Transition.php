@@ -17,6 +17,10 @@ class Transition extends Model
 
     public function guest()
     {
-        return $this->belongsTo(Guest::class);
+        return $this->belongsTo(Guest::class, 'guest_id');
+    }
+    public function roomUsings()
+    {
+        return $this->hasMany(RoomUsing::class, 'trans_id');
     }
 }

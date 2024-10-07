@@ -14,4 +14,14 @@ class RoomUsing extends Model
     protected $fillable = ['uuid', 'trans_id', 'room_id', 'check_in', 'check_out', 'is_deleted', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
     public $timestamps = true;
+
+    public function transition()
+    {
+        return $this->belongsTo(Transition::class, 'trans_id');
+    }
+
+    public function guests()
+    {
+        return $this->hasMany(RoomUsingGuest::class, 'room_using_id');
+    }
 }
