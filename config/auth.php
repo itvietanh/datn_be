@@ -36,10 +36,15 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
+        'employee' => [
+            'driver' => 'passport',
+            'provider' => 'employees',
         ],
+
+        // 'web' => [
+        //     'driver' => 'session',
+        //     'provider' => 'users',
+        // ],
     ],
 
     /*
@@ -60,10 +65,14 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'employees' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => App\Models\Employee::class,
         ],
+        // 'users' => [
+        //     'driver' => 'eloquent',
+        //     'model' => env('AUTH_MODEL', App\Models\User::class),
+        // ],
 
         // 'users' => [
         //     'driver' => 'database',

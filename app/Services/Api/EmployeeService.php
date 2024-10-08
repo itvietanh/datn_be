@@ -13,4 +13,10 @@ class EmployeeService extends BaseService
     {
         $this->model = new Employee();
     }
+
+    public function findByEmail($email)
+    {
+        $query = $this->model;
+        return $query->where('email', $email)->first();
+    }
 }

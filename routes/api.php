@@ -18,10 +18,15 @@ use App\Http\Controllers\Api\RoomUsingController;
 use App\Http\Controllers\Api\RoomUsingGuestController;
 use App\Http\Controllers\Api\RoomUsingServiceController;
 use App\Http\Controllers\Api\Categories\DiaChinhController;
+use App\Http\Controllers\Api\AuthController;
 
 Route::group([
     'prefix' => 'system'
 ], function () {
+    Route::get('check-login', [AuthController::class, 'checkLogin']);
+    Route::post('register', [AuthController::class, 'store']);
+    Route::post('auth/login', [AuthController::class, 'login']);
+
     // Khách sạn
     Route::group([
         'prefix' => 'hotel'
@@ -144,7 +149,7 @@ Route::group([
         Route::get('get-list', [RoomUsingServiceController::class, 'index']);
         Route::post('', [RoomUsingServiceController::class, 'store']);
         Route::get('', [RoomUsingServiceController::class, 'show']);
-        Route::put('', [RoomUsingServiceController::class, 'update']); 
+        Route::put('', [RoomUsingServiceController::class, 'update']);
         Route::delete('', [RoomUsingServiceController::class, 'destroy']);
     });
 

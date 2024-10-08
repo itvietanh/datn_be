@@ -47,15 +47,22 @@ class BaseService
     {
         $page = $request->query('page', 1);
         $size = $request->query('size', 20);
+        $size = $size > 200 ? 200 : $size;
+        $countable = filter_var($request->query('countable', true), FILTER_VALIDATE_BOOLEAN);
 
         $query = $this->model->select($columns);
 
         if ($whereParams && is_callable($whereParams)) {
             $whereParams($query);
         }
-
-        $data = $query->paginate($size, ['*'], 'page', $page);
-
+        DB::enableQueryLog();
+        if ($countable) {
+            $data = $query->paginate($size, ['*'], 'page', $page);
+        } else {
+            // dd($countable);
+            $data = $query->simplePaginate($size, ['*'], 'page', $page);
+        }
+        Log::info(DB::getQueryLog());
         return $data;
     }
 

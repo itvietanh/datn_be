@@ -23,10 +23,11 @@ class EmployeeRequest extends FormRequest
     {
         return [
             'name' => 'required|string',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:employee',
             'phone' => 'required|string',
             'address' => 'required',
             'hotel_id' => 'required',
+            'password' => 'required'
         ];
     }
 
@@ -38,8 +39,10 @@ class EmployeeRequest extends FormRequest
             'phone.required' => 'Số điện thoại không được để trống',
             'email.required' => 'Email không được để trống',
             'email.email' => 'Email không đúng định dạng',
+            'email.unique' => 'Email đã tồn tại',
             'address.required' => 'Địa chỉ không được để trống',
-            'hotel_id.required' => 'Không được để trống',
+            'hotel_id.required' => 'Cơ sở không được để trống',
+            'password.required' => 'Mật khẩu không được để trống'
         ];
     }
 }

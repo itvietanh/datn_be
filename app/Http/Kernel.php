@@ -68,4 +68,8 @@ class Kernel extends HttpKernel
     protected $commands = [
         \App\Console\Commands\MakeService::class,
     ];
+
+    protected $routeMiddleware = [
+        'auth.employee' => \App\Http\Middleware\AuthenticateEmployee::class,
+    ];
 }

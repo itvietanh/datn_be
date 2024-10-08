@@ -29,7 +29,7 @@ class BaseController extends Controller
                 'meta' => [
                     'page' => $data->currentPage(),
                     'size' => $data->perPage(),
-                    'total' => $data->total(),
+                    'total' => method_exists($data, 'total') ? $data->total() : null,
                     'hasNextPage' => $data->hasMorePages(),
                 ]
             ]
