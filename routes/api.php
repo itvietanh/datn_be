@@ -75,7 +75,7 @@ Route::group([
     });
 
     // Giao dịch
-    // Transition 
+    // Transition
     Route::group([
         'prefix' => 'transition'
     ], function () {
@@ -92,6 +92,7 @@ Route::group([
         'prefix' => 'guest'
     ], function () {
         Route::get('get-list', [GuestController::class, 'index']);
+        Route::get('options', [GuestController::class, 'getCombobox']);
         Route::post('', [GuestController::class, 'store']);
         Route::get('', [GuestController::class, 'show']);
         Route::put('', [GuestController::class, 'update']);
