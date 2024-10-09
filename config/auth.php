@@ -40,11 +40,6 @@ return [
             'driver' => 'passport',
             'provider' => 'employees',
         ],
-
-        // 'web' => [
-        //     'driver' => 'session',
-        //     'provider' => 'users',
-        // ],
     ],
 
     /*

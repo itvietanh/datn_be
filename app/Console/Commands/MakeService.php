@@ -40,20 +40,20 @@ class MakeService extends Command
 
 
         $content = <<<PHP
-            <?php
+        <?php
 
-            namespace {$namespace};
+        namespace {$namespace};
 
-            use App\Services\BaseService;
+        use App\Services\BaseService;
 
-            class {$className} extends BaseService
+        class {$className} extends BaseService
+        {
+            // Service logic here
+            public function __construct()
             {
-                // Service logic here
-                public function __construct()
-                {
-                    // \$this->model = new YourModel;
-                }
+                // \$this->model = new YourModel;
             }
+        }
 
         PHP;
 

@@ -21,7 +21,7 @@ class RoomTypeController extends BaseController
      */
     public function index(Request $req)
     {
-        $column = ['uuid', 'hotel_id', 'type_name', 'type_price', 'description','created_at', 'updated_at', 'created_by', 'updated_by'];
+        $column = ['uuid', 'hotel_id', 'type_name', 'description', 'price_per_hour', 'price_per_day', 'price_overtime', 'vat', 'number_of_people', 'created_at', 'updated_at', 'created_by', 'updated_by'];
         $searchParams = (object) $req->only(['hotel_id', 'type_name']);
         $data = $this->service->getList($req, $column, function ($query) use ($searchParams) {
             if (isset($searchParams->hotel_id)) {

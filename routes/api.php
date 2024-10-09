@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\RoomUsingGuestController;
 use App\Http\Controllers\Api\RoomUsingServiceController;
 use App\Http\Controllers\Api\Categories\DiaChinhController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\OrderRoomController;
 
 Route::group([
     'prefix' => 'system'
@@ -27,6 +28,7 @@ Route::group([
     Route::post('register', [AuthController::class, 'store']);
     Route::post('auth/login', [AuthController::class, 'login']);
 
+    Route::middleware('auth:api')->group(function () {});
     // Khách sạn
     Route::group([
         'prefix' => 'hotel'
@@ -181,5 +183,11 @@ Route::group([
         'prefix' => 'categories/diachinh'
     ], function () {
         Route::get('options', [DiaChinhController::class, 'getCombobox']);
+    });
+
+    Route::group([
+        'prefix' => 'order-room'
+    ], function () {
+        Route::post('', [OrderRoomController::class, 'store']);
     });
 });

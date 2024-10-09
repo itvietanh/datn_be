@@ -38,7 +38,7 @@ class FloorController extends BaseController
             if (isset($searchParams->floor_number)) {
                 $query->where('floor.floor_number', '=', $searchParams->floor_number);
             }
-        }, ['rooms:id,room_number as roomNumber,status,max_capacity as maxCapacity,floor_id']);
+        }, ['rooms:id, room_number as roomNumber, status, floor_id']);
 
         return $this->getPaging($data);
     }

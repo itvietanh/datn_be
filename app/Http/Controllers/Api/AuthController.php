@@ -55,29 +55,6 @@ class AuthController extends BaseController
         return response()->json(['error' => 'Thông tin đăng nhập không đúng'], 401);
     }
 
-    // public function login(Request $request)
-    // {
-    //     $credentials = $request->only('email', 'password');
-
-    //     if (Auth::guard('employee')->attempt($credentials)) {
-    //         $employee = Auth::guard('employee')->user();
-
-    //         if ($employee instanceof \App\Models\Employee) {
-    //             $token = $employee->createToken('Personal Access Token')->accessToken;
-
-    //             return response()->json([
-    //                 'access_token' => $token,
-    //                 'token_type' => 'Bearer',
-    //                 'employee' => $employee
-    //             ]);
-    //         } else {
-    //             return response()->json(['error' => 'Lỗi hệ thống'], 500);
-    //         }
-    //     }
-
-    //     return response()->json(['error' => 'Thông tin đăng nhập không đúng'], 401);
-    // }
-
     public function checkLogin(Request $request)
     {
         if (Auth::guard('employee')->check()) {
