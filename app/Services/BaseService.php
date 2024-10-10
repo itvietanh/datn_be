@@ -55,13 +55,11 @@ class BaseService
         if ($whereParams && is_callable($whereParams)) {
             $whereParams($query);
         }
-        DB::enableQueryLog();
         if ($countable) {
             $data = $query->paginate($size, ['*'], 'page', $page);
         } else {
             $data = $query->simplePaginate($size, ['*'], 'page', $page);
         }
-        Log::info(DB::getQueryLog());
         return $data;
     }
 
@@ -70,7 +68,6 @@ class BaseService
         // Lấy thông tin phân trang từ request(Nếu null thì sử dụng giá trị mặc định)
         $page = (int) $request->query('page', 1);
         $size = (int) $request->query('size', 20);
-
         // Khởi tạo truy vấn với các cột được chỉ định và với mối quan hệ
         $query = $this->model->with($with)->select($columns);
         // Thực hiện các điều kiện (join, where)
@@ -78,7 +75,6 @@ class BaseService
             $whereParams($query);
         }
         $data = $query->paginate($size, ['*'], 'page', $page);
-
         return $data;
     }
 

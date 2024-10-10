@@ -21,4 +21,9 @@ class OrderRoomController extends BaseController
         $data = $this->service->handleOrderRoom($req);
         return $this->responseSuccess($data, 201);
     }
+
+    public function calulatorPrice(Request $req) {
+        $data = $this->service->handleCalculatorPrice($req);
+        return $this->responseSuccess($data);;
+    }
 }

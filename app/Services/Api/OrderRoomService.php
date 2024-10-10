@@ -18,7 +18,8 @@ class OrderRoomService extends BaseService
 {
     public function __construct() {}
 
-    public function handleOrderRoom(Request $req) {
+    public function handleOrderRoom(Request $req)
+    {
         $guestId = [];
         $transId = [];
         $roomUsingId = [];
@@ -59,5 +60,38 @@ class OrderRoomService extends BaseService
         }
 
         return $req->all();
+    }
+
+    public function handleCalculatorPrice($req)
+    {
+        /**
+         * Request: {
+         *  room_uuid: ,
+         *  check_in: ,
+         *  check_out: ,
+         * }
+         */
+        $dataRoom = $this->getRoomByUuid();
+
+        // this->model = new RoomType();
+        // $roomType = $this->find($dataRoom->room_type_id)
+
+        // Kiểm tra thời gian giữa check-in và check-out (check theo giờ hay theo ngày)
+        if ($req->check_in && $req->check_out) {
+            
+        }
+        
+        // nếu theo giờ roomType->price_per_hour * số giờ = số tiền (ví dụ) công thức tự mò nhé
+        // ngược lại nếu theo ngày roomType->price_per_day * số ngày = số tiền
+    }
+
+    public function getRoomByUuid()
+    {
+        /**
+         * $this->model = new Room;
+         * uuid => findByUuid -> lấy ra thông tin phòng 
+         * $dataRoom = $this->findByUuid(uuid)
+         * return $dataRoom;
+         */
     }
 }
