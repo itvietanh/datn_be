@@ -190,6 +190,7 @@ Route::group([
             'prefix' => 'order-room'
         ], function () {
             Route::post('', [OrderRoomController::class, 'store']);
+            Route::post('calculator', [OrderRoomController::class, 'calulatorPrice']);
         });
     });
 });
