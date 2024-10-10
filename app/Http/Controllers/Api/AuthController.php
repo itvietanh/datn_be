@@ -48,7 +48,9 @@ class AuthController extends BaseController
             return response()->json([
                 'access_token' => $token,
                 'token_type' => 'Bearer',
-                'employee' => $employee
+                'employee' => [
+                    "name" => $employee->name,
+                ]
             ]);
         }
 
