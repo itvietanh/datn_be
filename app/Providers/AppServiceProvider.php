@@ -8,6 +8,7 @@ use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
+
     /**
      * Register any application services.
      */
@@ -21,7 +22,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
-        Passport::tokensExpireIn(now()->addHours(3));
+
     }
 }

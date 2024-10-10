@@ -59,7 +59,6 @@ class BaseService
         if ($countable) {
             $data = $query->paginate($size, ['*'], 'page', $page);
         } else {
-            // dd($countable);
             $data = $query->simplePaginate($size, ['*'], 'page', $page);
         }
         Log::info(DB::getQueryLog());

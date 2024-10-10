@@ -27,10 +27,10 @@ class RoomController extends BaseController
         $searchParams = (object) $req->only(['hotel_id', 'room_number']);
         $data = $this->service->getList($req, $column, function($query) use ($searchParams) {
             if (isset($searchParams->hotel_id)) {
-                $query->where('room.hotel_id', '=', $searchParams->hotel_id);
+                $query->where('hotel_id', '=', $searchParams->hotel_id);
             }
             if (isset($searchParams->room_number)) {
-                $query->where('room.room_number', '=', $searchParams->floor_number);
+                $query->where('room_number', '=', $searchParams->floor_number);
             }
         });
         return $this->getPaging($data);
