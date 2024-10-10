@@ -2,32 +2,31 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\ServiceProvider;
-
-use Laravel\Passport\Passport;
-
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use Laravel\Passport\Passport;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    protected $policies = [
-        'App\Model' => 'App\Policies\Modelpolicy'
-    ];
     /**
-     * Register any application services.
+     * The policy mappings for the application.
+     *
+     * @var array
      */
-    public function register(): void
-    {
-        //
-    }
+    protected $policies = [
+         'App\Models\Model' => 'App\Policies\ModelPolicy',
+    ];
 
     /**
-     * Bootstrap any application services.
+     * Register any authentication / authorization services.
+     *
+     * @return void
      */
-    public function boot(): void
+    public function boot()
     {
-        $this->registerPolicies();
-        // Passport::routes();
+        // $this->registerPolicies();
+
+        // Cấu hình thời gian hết hạn của token
         Passport::tokensExpireIn(now()->addHours(1));
     }
 }
