@@ -27,6 +27,7 @@ class AuthController extends BaseController
 
     public function store(EmployeeRequest $request)
     {
+        // dd($request);
         $dataReq = $request->all();
         $dataReq['password'] = Hash::make($dataReq['password']);
         $data = $this->service->create($dataReq);
