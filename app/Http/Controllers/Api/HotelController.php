@@ -27,7 +27,6 @@ class HotelController extends BaseController
      */
     public function index(Request $req)
     {
-        dd($req->all());
         $fillable = ['uuid', 'name', 'address', 'star_rating', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
         $searchParams = (object) $req->only(['name', 'address']);

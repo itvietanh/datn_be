@@ -9,13 +9,8 @@ return [
     ],
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
-
         'employee' => [
-            'driver' => 'passport', 
+            'driver' => 'passport',
             'provider' => 'employees',
         ],
     ],

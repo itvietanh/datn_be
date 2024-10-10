@@ -20,15 +20,16 @@ use App\Http\Controllers\Api\RoomUsingServiceController;
 use App\Http\Controllers\Api\Categories\DiaChinhController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderRoomController;
+use App\Http\Middleware\AuthenticateEmployee;
 
 Route::group([
     'prefix' => 'system',
 ], function () {
-    Route::get('check-login', [AuthController::class, 'checkLogin']);
+    Route::get('auth/token', [AuthController::class, 'authToken']);
     Route::post('register', [AuthController::class, 'store']);
     Route::post('auth/login', [AuthController::class, 'login']);
 
-    Route::middleware('auth:employee')->group(function () {
+    Route::middleware([AuthenticateEmployee::class])->group(function () {
         // Khách sạn
         Route::group([
             'prefix' => 'hotel'
