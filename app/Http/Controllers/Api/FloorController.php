@@ -23,6 +23,8 @@ class FloorController extends BaseController
             'floor.uuid',
             'floor.hotel_id as hotelId',
             'floor.floor_number as floorNumber',
+            'room_type.type_name as typeName',
+            'room_type.number_of_people as numberOfPeople',
             'floor.created_at as createdAt',
             'floor.updated_at as createdBy',
         ];
@@ -30,7 +32,9 @@ class FloorController extends BaseController
         $searchParams = (object) $request->only(['hotel_id', 'floor_number']);
 
         $data = $this->service->getListByWith($request, $columns, function ($query) use ($searchParams) {
-            $query->join('hotel', 'floor.hotel_id', '=', 'hotel.id');
+            $query->join('hotel', 'floor.hotel_id', '=', 'hotel.id')
+            ->join('room', 'room.floor_id', '=', 'floor.id')
+            ->join('room_type', 'room.room_type_id', '=', 'room_type.id'); 
     
             if (isset($searchParams->hotel_id)) {
                 $query->where('floor.hotel_id', '=', $searchParams->hotel_id);
@@ -38,7 +42,7 @@ class FloorController extends BaseController
             if (isset($searchParams->floor_number)) {
                 $query->where('floor.floor_number', '=', $searchParams->floor_number);
             }
-        }, ['rooms:id,room_number as roomNumber,status,floor_id']);
+        }, ['rooms:id,room_number as roomNumber,status,floor_id,room_type_id']);
 
         return $this->getPaging($data);
     }
