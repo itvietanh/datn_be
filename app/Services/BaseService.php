@@ -36,11 +36,11 @@ class BaseService
 
     /**
      * Hàm xử lý phân trang cho danh sách.
-     * 
+     *
      * @param Model $model Model được truyền vào
      * @param Request $request Yêu cầu HTTP
      * @param array $columns Danh sách các cột cần select
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getList(Request $request, $columns = ['*'], $whereParams = null)
