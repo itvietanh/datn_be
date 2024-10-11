@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Categories\DiaChinhController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderRoomController;
 use App\Http\Middleware\AuthenticateEmployee;
+use App\Http\Controllers\Api\OrderHistoryController;
 
 Route::group([
     'prefix' => 'system',
@@ -191,6 +192,12 @@ Route::group([
         ], function () {
             Route::post('', [OrderRoomController::class, 'store']);
             Route::post('calculator', [OrderRoomController::class, 'calulatorPrice']);
+        });
+
+        Route::group([
+            'prefix' => 'order-history'
+        ], function () {
+            Route::get('', [OrderHistoryController::class, 'index']);
         });
     });
 });

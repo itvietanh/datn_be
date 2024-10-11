@@ -60,6 +60,7 @@ class BaseService
         } else {
             $data = $query->simplePaginate($size, ['*'], 'page', $page);
         }
+
         return $data;
     }
 
