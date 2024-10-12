@@ -33,8 +33,10 @@ class OrderRoomService extends BaseService
         }
 
         if (!empty($req->transition)) {
+            // $req->transition_date = 
             $transition = $req->transition;
             $transition['guest_id'] = $guestId->id;
+            $transition['transition_date'] = \DateTime::createFromFormat('YmdHis', $req->transition_date);
             // dd($transition);
             $this->model = new Transition();
             $transId = $this->create($transition);
@@ -43,6 +45,8 @@ class OrderRoomService extends BaseService
         if (!empty($req->roomUsing)) {
             $roomUsing = $req->roomUsing;
             $trans['trans_id'] = $transId->id;
+            $transition['check_in'] = \DateTime::createFromFormat('YmdHis', $req->check_in);
+            $transition['check_out'] = \DateTime::createFromFormat('YmdHis', $req->check_out);
             $this->model = new RoomUsing();
             $roomUsingId = $this->create($roomUsing);
         }
@@ -51,6 +55,8 @@ class OrderRoomService extends BaseService
             $roomUsingGuest = $req->roomUsingGuest;
             $roomUsingGuest['guest_id'] = $guestId->id;
             $roomUsingGuest['room_using_id'] = $roomUsingId->id;
+            $transition['check_in'] = \DateTime::createFromFormat('YmdHis', $req->check_in);
+            $transition['check_out'] = \DateTime::createFromFormat('YmdHis', $req->check_out);
             $this->model = new RoomUsingGuest();
             $this->create($roomUsingGuest);
         }
@@ -123,41 +129,47 @@ class OrderRoomService extends BaseService
 
         // Kiểm tra thời gian giữa check-in và check-out
         if ($req->check_in && $req->check_out) {
-            $checkIn = strtotime($req->check_in);
-            $checkOut = strtotime($req->check_out);
+            $checkIn = \DateTime::createFromFormat('YmdHis', $req->check_in);
+            $checkOut = \DateTime::createFromFormat('YmdHis', $req->check_out);
 
-            // Tính thời gian chênh lệch giữa check-in và check-out theo giờ
-            $timeDifference = abs($checkOut - $checkIn) / 3600;
+            if ($checkIn && $checkOut) {
+                // Tính thời gian chênh lệch giữa check-in và check-out theo giờ
+                $interval = $checkIn->diff($checkOut);
+                $hours = ($interval->days * 24) + $interval->h + ($interval->i / 60); // Chuyển đổi sang giờ
 
-            // Tính giá tiền dựa trên giờ
-            if ($timeDifference < 24) {
-                $totalPrice = $roomType->price_per_hour * $timeDifference;
-            } else {
-                // Nếu thời gian >= 24 giờ, tính số ngày và số giờ dư
-                $days = floor($timeDifference / 24); // Số ngày
-                $remainingHours = $timeDifference - ($days * 24); // Số giờ còn lại
+                // Tính giá tiền dựa trên giờ
+                if ($hours < 24) {
+                    $totalPrice = $roomType->price_per_hour * $hours;
+                } else {
+                    // Nếu thời gian >= 24 giờ, tính số ngày và số giờ dư
+                    $days = floor($hours / 24); // Số ngày
+                    $remainingHours = $hours - ($days * 24); // Số giờ còn lại
 
-                // Tính tổng tiền: tiền cho số ngày + tiền cho số giờ dư
-                $totalPrice = ($roomType->price_per_day * $days) + ($roomType->price_per_hour * $remainingHours);
+                    // Tính tổng tiền: tiền cho số ngày + tiền cho số giờ dư
+                    $totalPrice = ($roomType->price_per_day * $days) + ($roomType->price_per_hour * $remainingHours);
+                }
+
+                // Tính mã số thuế (VAT)
+                $vat = $roomType->vat;
+                $tax = ($totalPrice * $vat) / 100;
+
+                // Tổng tiền sau thuế
+                $finalPrice = $totalPrice + $tax;
+                $totalPrice = round($totalPrice, 2); 
+                $tax = round($tax, 2); 
+                $finalPrice = round($finalPrice, 2);
+
+                $data = [
+                    'total_price' => $totalPrice,
+                    'vat' => $tax,
+                    'final_price' => $finalPrice, // Tổng tiền bao gồm thuế
+                    'check_in' => $req->check_in,
+                    'check_out' => $req->check_out,
+                ];
+
+                // Trả về kết quả tính toán
+                return $data;
             }
-
-            // Tính mã số thuế (VAT)
-            $vat = $roomType->vat;
-            $tax = ($totalPrice * $vat) / 100;
-
-            // Tổng tiền sau thuế
-            $finalPrice = $totalPrice + $tax;
-
-            $data = [
-                'total_price' => $totalPrice,
-                'vat' => $tax,
-                'final_price' => $finalPrice, // Tổng tiền bao gồm thuế
-                'check_in' => $req->check_in,
-                'check_out' => $req->check_out,
-            ];
-
-            // Trả về kết quả tính toán
-            return $data;
         }
     }
 

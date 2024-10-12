@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 use App\Services\Api\RoomService;
 
@@ -33,6 +34,21 @@ class RoomController extends BaseController
                 $query->where('room_number', '=', $searchParams->floor_number);
             }
         });
+        return $this->getPaging($data);
+    }
+
+    public function getCombobox(Request $req)
+    {
+        $fillable = ['id as value', DB::raw("CONCAT('Phòng ', room_number) as label")];
+
+        $searchParams = (object) $req->only(['hotel_id', 'q']);
+
+        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+            if (!empty($searchParams->hotel_id)) {
+                $query->where('hotel_id', '=', $searchParams->hotel_id);
+            }
+        });
+
         return $this->getPaging($data);
     }
 

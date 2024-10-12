@@ -18,34 +18,44 @@ class FloorController extends BaseController
 
     public function index(Request $request)
     {
-        $columns = [
-            'floor.id',
-            'floor.uuid',
-            'floor.hotel_id as hotelId',
-            'floor.floor_number as floorNumber',
-            'room_type.type_name as typeName',
-            'room_type.number_of_people as numberOfPeople',
-            'floor.created_at as createdAt',
-            'floor.updated_at as createdBy',
-        ];
+        $query = DB::table('floor')
+            ->select(
+                'floor.id',
+                'floor.uuid',
+                'floor.hotel_id AS hotelId',
+                'floor.floor_number AS floorNumber',
+                'floor.created_at AS createdAt',
+                'floor.updated_at AS updatedAt',
+                DB::raw("COALESCE(
+                jsonb_agg(
+                    jsonb_build_object(
+                        'roomUuid', room.uuid,
+                        'roomNumber', room.room_number,
+                        'status', room.status,
+                        'typeName', room_type.type_name,
+                        'numberOfPeople', room_type.number_of_people
+                    )
+                ) FILTER (WHERE room.id IS NOT NULL),
+                '[]'::jsonb
+            ) AS rooms")
+            )
+            ->join('hotel', 'floor.hotel_id', '=', 'hotel.id')
+            ->leftJoin('room', 'room.floor_id', '=', 'floor.id')
+            ->leftJoin('room_type', 'room.room_type_id', '=', 'room_type.id')
+            ->groupBy('floor.id', 'floor.uuid', 'floor.hotel_id', 'floor.floor_number', 'floor.created_at', 'floor.updated_at')
+            ->orderBy('floor.floor_number', 'ASC');
 
-        $searchParams = (object) $request->only(['hotel_id', 'floor_number']);
+        $data = $this->service->getListQueryBuilder($request, $query);
 
-        $data = $this->service->getListByWith($request, $columns, function ($query) use ($searchParams) {
-            $query->join('hotel', 'floor.hotel_id', '=', 'hotel.id')
-            ->join('room', 'room.floor_id', '=', 'floor.id')
-            ->join('room_type', 'room.room_type_id', '=', 'room_type.id'); 
-    
-            if (isset($searchParams->hotel_id)) {
-                $query->where('floor.hotel_id', '=', $searchParams->hotel_id);
-            }
-            if (isset($searchParams->floor_number)) {
-                $query->where('floor.floor_number', '=', $searchParams->floor_number);
-            }
-        }, ['rooms:id,room_number as roomNumber,status,floor_id,room_type_id']);
+        // Chuyển đổi rooms từ json string sang json
+        $data->getCollection()->transform(function ($item) {
+            $item->rooms = json_decode($item->rooms); // Decode rooms JSON string into a JSON object
+            return $item;
+        });
 
         return $this->getPaging($data);
     }
+
 
     public function getCombobox(Request $req)
     {
@@ -53,7 +63,7 @@ class FloorController extends BaseController
 
         $searchParams = (object) $req->only(['id', 'q']);
 
-        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+        $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
             if (!empty($searchParams->q)) {
                 $query->where('name', 'like', '%' . $searchParams->q . '%');
             }

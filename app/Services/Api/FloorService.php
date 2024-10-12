@@ -12,4 +12,6 @@ class FloorService extends BaseService
     {
         $this->model = new Floor();
     }
+
+    
 }
