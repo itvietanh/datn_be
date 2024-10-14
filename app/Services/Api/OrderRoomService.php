@@ -5,6 +5,7 @@ namespace App\Services\Api;
 use App\Services\BaseService;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 //Models
 
@@ -15,6 +16,7 @@ use App\Models\RoomUsing;
 use App\Models\RoomUsingGuest;
 use App\Models\RoomUsingService;
 use App\Models\Room;
+use Carbon\Carbon;
 
 class OrderRoomService extends BaseService
 {
@@ -167,5 +169,41 @@ class OrderRoomService extends BaseService
         // Giả sử bạn đã có Room model với hàm findByUuid
         $this->model = new Room();
         return $this->findFirstByUuid($uuid);
+    }
+
+    public function updateOrderRoom(Request $req)
+    {
+        $this->model = new RoomUsing();
+        $roomUsing = $this->find($req->id);
+
+        $currentTime = Carbon::now('Asia/Ho_Chi_Minh');
+        // $checkInTime = Carbon::parse($roomUsing->check_in)->setTimezone('UTC');
+
+        // // $checkInTimeInHCM = $checkInTime->setTimezone('Asia/Ho_Chi_Minh');
+        // // dd($checkInTimeInHCM, $currentTime);
+        // // $timeDifference = $checkInTime->diffInMinutes($currentTime);
+        // // dd($timeDifference);
+
+        // // if ($timeDifference > 10) {
+        // //     return response()->json(['error' => 'Không thể đổi phòng vì đã quá 10 phút'], 400);
+        // // }
+
+        $roomUsing->is_deleted = 1;
+        $roomUsing->save();
+        $newRoomUsingData = [
+            'uuid' => Str::uuid()->toString(),
+            'trans_id' => $roomUsing->trans_id,
+            'room_id' => $req->new_room_id,
+            'check_in' => $roomUsing->currentTime,
+            'check_out' => $roomUsing->check_out,
+            'created_by' => $roomUsing->created_by,
+            'updated_by' => $roomUsing->updated_by,
+        ];
+        $this->model = new RoomUsing();
+        $newRoomUsing = $this->create($newRoomUsingData);
+        return response()->json([
+            'message' => 'Chuyển phòng thành công',
+            'new_room_using' => $newRoomUsing
+        ]);
     }
 }

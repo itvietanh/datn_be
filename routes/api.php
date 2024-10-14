@@ -156,6 +156,7 @@ Route::group([
             Route::get('', [RoomUsingServiceController::class, 'show']);
             Route::put('', [RoomUsingServiceController::class, 'update']);
             Route::delete('', [RoomUsingServiceController::class, 'destroy']);
+            Route::post('calculate-fee', [RoomUsingServiceController::class, 'calculateServiceFee']);
         });
 
         //room-using-guest
@@ -191,6 +192,7 @@ Route::group([
             'prefix' => 'order-room'
         ], function () {
             Route::post('', [OrderRoomController::class, 'store']);
+            Route::put('', [OrderRoomController::class, 'update']);
             Route::post('calculator', [OrderRoomController::class, 'calulatorPrice']);
         });
 
