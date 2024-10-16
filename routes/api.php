@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\MenuController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Passport;
@@ -201,5 +202,16 @@ Route::group([
         ], function () {
             Route::get('', [OrderHistoryController::class, 'index']);
         });
+
+        Route::group([
+            'prefix' => 'menu'
+        ], function () {
+            Route::get('get-list', [MenuController::class, 'index']);
+            Route::post('', [MenuController::class, 'store']);
+            Route::get('', [MenuController::class, 'show']);
+            Route::put('', [MenuController::class, 'update']);
+            Route::delete('', [MenuController::class, 'destroy']);
+        });
+
     });
 });
