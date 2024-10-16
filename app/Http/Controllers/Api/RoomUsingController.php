@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\Api\RoomUsingService;
 
 use App\Http\Controllers\BaseController;
+use App\Models\RoomUsing;
 
 class RoomUsingController extends BaseController
 {
@@ -18,6 +19,7 @@ class RoomUsingController extends BaseController
     /**
      * Display a listing of the resource.
      */
+ 
 
     public function index(Request $req)
     {
@@ -57,10 +59,6 @@ class RoomUsingController extends BaseController
     /**
      * Show the form for editing the specified resource.
      */
-    // public function edit(string $id)
-    // {
-    //     //
-    // }
 
     /**
      * Update the specified resource in storage.
@@ -89,4 +87,7 @@ class RoomUsingController extends BaseController
         $data = $this->service->delete($roomUsing->id);
         return $this->responseSuccess($roomUsing->uuid);
     }
+
+
+
 }

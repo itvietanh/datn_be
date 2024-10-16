@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\MenuController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Passport;
@@ -23,6 +22,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderRoomController;
 use App\Http\Middleware\AuthenticateEmployee;
 use App\Http\Controllers\Api\OrderHistoryController;
+use App\Http\Controllers\Api\OverdueRoomsUsingController;
 
 Route::group([
     'prefix' => 'system',
@@ -141,12 +141,15 @@ Route::group([
         Route::group([
             'prefix' => 'room-using'
         ], function () {
-            Route::get('get-list', [RoomUsingController::class, 'index']);
+            Route::get('get-list', [RoomUsingController::class, 'getOverdueRooms']);
+            // Route::get('/rooms', [RoomUsingController::class, 'getOverdueRooms']);
             Route::post('', [RoomUsingController::class, 'store']);
             Route::get('', [RoomUsingController::class, 'show']);
             Route::put('', [RoomUsingController::class, 'update']);
             Route::delete('', [RoomUsingController::class, 'destroy']);
         });
+
+
 
         // Phòng sử dụng dịch vụ (Lmaf service trước mới đúng cchuws)
         Route::group([
@@ -204,14 +207,10 @@ Route::group([
         });
 
         Route::group([
-            'prefix' => 'menu'
+            'prefix' => 'room-using-overdue'
         ], function () {
-            Route::get('get-list', [MenuController::class, 'index']);
-            Route::post('', [MenuController::class, 'store']);
-            Route::get('', [MenuController::class, 'show']);
-            Route::put('', [MenuController::class, 'update']);
-            Route::delete('', [MenuController::class, 'destroy']);
-        });
+            Route::get('', [OverdueRoomsUsingController::class, 'index']);
 
+        });
     });
 });
