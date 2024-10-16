@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderRoomController;
 use App\Http\Middleware\AuthenticateEmployee;
 use App\Http\Controllers\Api\OrderHistoryController;
+use App\Http\Controllers\Api\OverdueRoomsUsingController;
 
 Route::group([
     'prefix' => 'system',
@@ -140,12 +141,15 @@ Route::group([
         Route::group([
             'prefix' => 'room-using'
         ], function () {
-            Route::get('get-list', [RoomUsingController::class, 'index']);
+            Route::get('get-list', [RoomUsingController::class, 'getOverdueRooms']);
+            // Route::get('/rooms', [RoomUsingController::class, 'getOverdueRooms']);
             Route::post('', [RoomUsingController::class, 'store']);
             Route::get('', [RoomUsingController::class, 'show']);
             Route::put('', [RoomUsingController::class, 'update']);
             Route::delete('', [RoomUsingController::class, 'destroy']);
         });
+
+
 
         // Phòng sử dụng dịch vụ (Lmaf service trước mới đúng cchuws)
         Route::group([
@@ -200,6 +204,13 @@ Route::group([
             'prefix' => 'order-history'
         ], function () {
             Route::get('', [OrderHistoryController::class, 'index']);
+        });
+
+        Route::group([
+            'prefix' => 'room-using-overdue'
+        ], function () {
+            Route::get('', [OverdueRoomsUsingController::class, 'index']);
+
         });
     });
 });
