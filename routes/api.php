@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\OrderRoomController;
 use App\Http\Middleware\AuthenticateEmployee;
 use App\Http\Controllers\Api\OrderHistoryController;
 use App\Http\Controllers\Api\OverdueRoomsUsingController;
+use App\Http\Controllers\Api\MenuController;
 
 Route::group([
     'prefix' => 'system',
@@ -211,6 +212,16 @@ Route::group([
         ], function () {
             Route::get('', [OverdueRoomsUsingController::class, 'index']);
 
+        });
+
+        Route::group([
+            'prefix' => 'menu'
+        ], function () {
+            Route::get('get-list', [MenuController::class, 'index']);
+            Route::post('', [MenuController::class, 'store']);
+            Route::get('', [MenuController::class, 'show']);
+            Route::put('', [MenuController::class, 'update']);
+            Route::delete('', [MenuController::class, 'destroy']);
         });
     });
 });
