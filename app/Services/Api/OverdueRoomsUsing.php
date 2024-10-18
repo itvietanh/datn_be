@@ -4,9 +4,9 @@ namespace App\Services\Api;
 
 use App\Services\BaseService;
 
-use App\Models\RoomUsingService as RoomUsing;
+use App\Models\RoomUsing as RoomUsing;
 
-class RoomUsingService extends BaseService
+class OverdueRoomsUsing extends BaseService
 {
     // Service logic here
     public function __construct()

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\Models\RoomUsing;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use App\Services\Api\RoomUsingService;
 
@@ -76,4 +78,28 @@ public function destroy(Request $req)
 }
 
 
+
+    public function calculateServiceFee(Request $request)
+    {
+        $request->validate([
+            'room_using_id' => 'required|integer',
+            'services' => 'required|array',
+            'services.*.service_id' => 'required|integer',
+            'services.*.total' => 'required|integer',
+        ]);
+
+        $totalFee = 0;
+        foreach ($request->services as $serviceData) {
+            $service = Service::find($serviceData['service_id']);
+
+            if (!$service) {
+                return $this->response404();
+            }
+            $serviceFee = $service->service_price * $serviceData['total'];
+            $totalFee += $serviceFee;
+        }
+        return $this->responseSuccess([
+            'total_fee' => $totalFee,
+        ]);
+    }
 }
