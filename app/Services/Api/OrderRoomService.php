@@ -16,6 +16,11 @@ use App\Models\RoomUsingGuest;
 use App\Models\RoomUsingService;
 use App\Models\Room;
 
+
+// Enum
+
+use App\RoomStatusEnum;
+
 class OrderRoomService extends BaseService
 {
     public function __construct() {}
@@ -33,30 +38,34 @@ class OrderRoomService extends BaseService
         }
 
         if (!empty($req->transition)) {
-            // $req->transition_date = 
+            $transitionDateTime = $this->convertLongToTimestamp($req->transition['transition_date']);
             $transition = $req->transition;
             $transition['guest_id'] = $guestId->id;
-            $transition['transition_date'] = \DateTime::createFromFormat('YmdHis', $req->transition_date);
-            // dd($transition);
+            $transition['transition_date'] = $transitionDateTime;
             $this->model = new Transition();
             $transId = $this->create($transition);
         }
 
         if (!empty($req->roomUsing)) {
+            $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
+            $checkOut = $this->convertLongToTimestamp($req->roomUsing['check_out']);
             $roomUsing = $req->roomUsing;
-            $trans['trans_id'] = $transId->id;
-            $transition['check_in'] = \DateTime::createFromFormat('YmdHis', $req->check_in);
-            $transition['check_out'] = \DateTime::createFromFormat('YmdHis', $req->check_out);
+            $roomUsing['trans_id'] = $transId->id;
+            $roomUsing['check_in'] = $checkIn;
+            $roomUsing['check_out'] = $checkOut;
+            // dd($roomUsing);
             $this->model = new RoomUsing();
             $roomUsingId = $this->create($roomUsing);
         }
 
         if (!empty($req->roomUsingGuest)) {
+            $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
+            $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
             $roomUsingGuest = $req->roomUsingGuest;
             $roomUsingGuest['guest_id'] = $guestId->id;
             $roomUsingGuest['room_using_id'] = $roomUsingId->id;
-            $transition['check_in'] = \DateTime::createFromFormat('YmdHis', $req->check_in);
-            $transition['check_out'] = \DateTime::createFromFormat('YmdHis', $req->check_out);
+            $roomUsingGuest['check_in'] = $checkIn;
+            $roomUsingGuest['check_out'] = $checkOut;
             $this->model = new RoomUsingGuest();
             $this->create($roomUsingGuest);
         }
@@ -67,41 +76,16 @@ class OrderRoomService extends BaseService
             $this->create($roomUsingService);
         }
 
+        if (!empty($req->roomUsing['room_id'])) {
+            $this->model = new Room();
+            $params = [
+                "status" => RoomStatusEnum::DANG_O->value
+            ];
+            $this->update($req->roomUsing['room_id'], $params);
+        }
+
         return $req->all();
     }
-
-    // public function handleCalculatorPrice($req)
-    // {
-    //     /**
-    //      * Request: {
-    //      *  room_uuid: ,
-    //      *  check_in: ,
-    //      *  check_out: ,
-    //      * }
-    //      */
-    //     $dataRoom = $this->getRoomByUuid();
-
-    //     // this->model = new RoomType();
-    //     // $roomType = $this->find($dataRoom->room_type_id)
-
-    //     // Kiểm tra thời gian giữa check-in và check-out (check theo giờ hay theo ngày)
-    //     if ($req->check_in && $req->check_out) {
-
-    //     }
-
-    //     // nếu theo giờ roomType->price_per_hour * số giờ = số tiền (ví dụ) công thức tự mò nhé
-    //     // ngược lại nếu theo ngày roomType->price_per_day * số ngày = số tiền
-    // }
-
-    // public function getRoomByUuid()
-    // {
-    //     /**
-    //      * $this->model = new Room;
-    //      * uuid => findByUuid -> lấy ra thông tin phòng
-    //      * $dataRoom = $this->findByUuid(uuid)
-    //      * return $dataRoom;
-    //      */
-    // }
 
     public function handleCalculatorPrice(Request $req)
     {
@@ -155,8 +139,8 @@ class OrderRoomService extends BaseService
 
                 // Tổng tiền sau thuế
                 $finalPrice = $totalPrice + $tax;
-                $totalPrice = round($totalPrice, 2); 
-                $tax = round($tax, 2); 
+                $totalPrice = round($totalPrice, 2);
+                $tax = round($tax, 2);
                 $finalPrice = round($finalPrice, 2);
 
                 $data = [

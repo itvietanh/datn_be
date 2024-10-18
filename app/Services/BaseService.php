@@ -150,4 +150,10 @@ class BaseService
 
         return $fileName;
     }
+
+    protected function convertLongToTimestamp($val)
+    {
+        $dateTimestamp = \DateTime::createFromFormat('YmdHis', $val)->format('Y-m-d H:i:s');
+        return $dateTimestamp;
+    }
 }
