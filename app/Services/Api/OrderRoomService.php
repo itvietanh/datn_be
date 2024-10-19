@@ -1,23 +1,28 @@
 <?php
 
-namespace App\Services\Api;
 
-use App\Services\BaseService;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+    namespace App\Services\Api;
 
-//Models
+    use App\Services\BaseService;
 
-use App\Models\Guest;
-use App\Models\RoomType;
-use App\Models\Transition;
-use App\Models\RoomUsing;
-use App\Models\RoomUsingGuest;
-use App\Models\RoomUsingService;
-use App\Models\Room;
-use Carbon\Carbon;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Str;
 
+<<<<<<< HEAD
+=======
+    //Models
+
+    use App\Models\Guest;
+    use App\Models\RoomType;
+    use App\Models\Transition;
+    use App\Models\RoomUsing;
+    use App\Models\RoomUsingGuest;
+    use App\Models\RoomUsingService;
+    use App\Models\Room;
+    use Carbon\Carbon;
+
+>>>>>>> 52504058065e3e71ee3763e40f6daa4354547d82
 // Enum
 
 use App\RoomStatusEnum;
@@ -50,11 +55,11 @@ class OrderRoomService extends BaseService
 
         if (!empty($req->roomUsing)) {
             $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
-            $checkOut = $this->convertLongToTimestamp($req->roomUsing['check_out']);
+            // $checkOut = $this->convertLongToTimestamp($req->roomUsing['check_out']);
             $roomUsing = $req->roomUsing;
             $roomUsing['trans_id'] = $transId->id;
             $roomUsing['check_in'] = $checkIn;
-            $roomUsing['check_out'] = $checkOut;
+            // $roomUsing['check_out'] = $checkOut;
             // dd($roomUsing);
             $this->model = new RoomUsing();
             $roomUsingId = $this->create($roomUsing);
@@ -89,6 +94,7 @@ class OrderRoomService extends BaseService
         return $req->all();
     }
 
+<<<<<<< HEAD
     // public function handleCalculatorPrice(Request $req)
     // {
     //     // Lấy thông tin phòng dựa vào UUID
@@ -158,6 +164,9 @@ class OrderRoomService extends BaseService
     //         }
     //     }
     // }
+=======
+
+>>>>>>> 52504058065e3e71ee3763e40f6daa4354547d82
     public function handleCalculatorPrice(Request $req)
     {
         $dataRoom = $this->getRoomByUuid($req->room_uuid);
@@ -167,7 +176,11 @@ class OrderRoomService extends BaseService
         }
 
         $this->model = new RoomType();
+<<<<<<< HEAD
         $roomType = $this->find($dataRoom->room_type_id);
+=======
+         $roomType = $this->find($dataRoom->room_type_id);
+>>>>>>> 52504058065e3e71ee3763e40f6daa4354547d82
 
         if (!$roomType) {
             return response()->json(['error' => 'NOT FOUND ROOM TYPE'], 404);
@@ -247,8 +260,7 @@ class OrderRoomService extends BaseService
         // // dd($checkInTimeInHCM, $currentTime);
         // // $timeDifference = $checkInTime->diffInMinutes($currentTime);
         // // dd($timeDifference);
-
-        // // if ($timeDifference > 10) {
+// // if ($timeDifference > 10) {
         // //     return response()->json(['error' => 'Không thể đổi phòng vì đã quá 10 phút'], 400);
         // // }
 
