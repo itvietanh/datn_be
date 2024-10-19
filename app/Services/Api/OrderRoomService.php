@@ -35,8 +35,10 @@ class OrderRoomService extends BaseService
 
         if (!empty($req->guest)) {
             $guest = $req->guest;
-            $this->model = new Guest();
-            $guestId = $this->create($guest);
+            foreach ($guest as $item) {
+                $this->model = new Guest();
+                $guestId = $this->create($item);
+            }
         }
 
         if (!empty($req->transition)) {
@@ -50,12 +52,9 @@ class OrderRoomService extends BaseService
 
         if (!empty($req->roomUsing)) {
             $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
-            // $checkOut = $this->convertLongToTimestamp($req->roomUsing['check_out']);
             $roomUsing = $req->roomUsing;
             $roomUsing['trans_id'] = $transId->id;
             $roomUsing['check_in'] = $checkIn;
-            // $roomUsing['check_out'] = $checkOut;
-            // dd($roomUsing);
             $this->model = new RoomUsing();
             $roomUsingId = $this->create($roomUsing);
         }
@@ -64,12 +63,15 @@ class OrderRoomService extends BaseService
             $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
             $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
             $roomUsingGuest = $req->roomUsingGuest;
-            $roomUsingGuest['guest_id'] = $guestId->id;
-            $roomUsingGuest['room_using_id'] = $roomUsingId->id;
-            $roomUsingGuest['check_in'] = $checkIn;
-            $roomUsingGuest['check_out'] = $checkOut;
-            $this->model = new RoomUsingGuest();
-            $this->create($roomUsingGuest);
+
+            foreach ($guestId as $value) {
+                $roomUsingGuest['guest_id'] = $value->id;
+                $roomUsingGuest['room_using_id'] = $roomUsingId->id;
+                $roomUsingGuest['check_in'] = $checkIn;
+                $roomUsingGuest['check_out'] = $checkOut;
+                $this->model = new RoomUsingGuest();
+                $this->create($roomUsingGuest);
+            }
         }
 
         if (!empty($req->roomUsingService)) {
@@ -128,7 +130,7 @@ class OrderRoomService extends BaseService
                     $totalPrice = $roomType->price_per_hour * $hours;
                 } else {
                     // Nếu thời gian >= 24 giờ, tính số ngày và số giờ dư
-                    $days = floor($hours / 24); // Số ngày
+                    $days = $hours / 24; // Số ngày
                     $remainingHours = $hours - ($days * 24); // Số giờ còn lại
 
                     // Tính tổng tiền: tiền cho số ngày + tiền cho số giờ dư
@@ -141,9 +143,6 @@ class OrderRoomService extends BaseService
 
                 // Tổng tiền sau thuế
                 $finalPrice = $totalPrice + $tax;
-                $totalPrice = round($totalPrice, 2);
-                $tax = round($tax, 2);
-                $finalPrice = round($finalPrice, 2);
 
                 $data = [
                     'total_price' => $totalPrice,
