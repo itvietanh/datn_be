@@ -50,11 +50,11 @@ class OrderRoomService extends BaseService
 
         if (!empty($req->roomUsing)) {
             $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
-            $checkOut = $this->convertLongToTimestamp($req->roomUsing['check_out']);
+            // $checkOut = $this->convertLongToTimestamp($req->roomUsing['check_out']);
             $roomUsing = $req->roomUsing;
             $roomUsing['trans_id'] = $transId->id;
             $roomUsing['check_in'] = $checkIn;
-            $roomUsing['check_out'] = $checkOut;
+            // $roomUsing['check_out'] = $checkOut;
             // dd($roomUsing);
             $this->model = new RoomUsing();
             $roomUsingId = $this->create($roomUsing);

@@ -28,12 +28,31 @@ class FloorController extends BaseController
                 'floor.updated_at AS updatedAt',
                 DB::raw("COALESCE(
                 jsonb_agg(
-                    jsonb_build_object(
+                    DISTINCT jsonb_build_object(
                         'roomUuid', room.uuid,
                         'roomNumber', room.room_number,
                         'status', room.status,
                         'typeName', room_type.type_name,
-                        'numberOfPeople', room_type.number_of_people
+                        'numberOfPeople', room_type.number_of_people,
+                        'checkIn', room_using_guest.check_in,
+                        'checkOut', room_using_guest.check_out,
+                        'totalGuests', (
+                            SELECT COUNT(*)
+                            FROM room_using_guest rug
+                            WHERE rug.room_using_id = room_using.id
+                        ),
+                        'room_using_guest', (
+                            SELECT jsonb_agg(
+                                jsonb_build_object(
+                                    'uuid', guest.uuid,
+                                    'name', guest.name,
+                                    'phoneNumber', guest.phone_number
+                                )
+                            )
+                            FROM room_using_guest rug
+                            JOIN guest ON rug.guest_id = guest.id
+                            WHERE rug.room_using_id = room_using.id
+                        )
                     )
                 ) FILTER (WHERE room.id IS NOT NULL),
                 '[]'::jsonb
@@ -42,6 +61,9 @@ class FloorController extends BaseController
             ->join('hotel', 'floor.hotel_id', '=', 'hotel.id')
             ->leftJoin('room', 'room.floor_id', '=', 'floor.id')
             ->leftJoin('room_type', 'room.room_type_id', '=', 'room_type.id')
+            ->leftJoin('room_using', 'room.id', '=', 'room_using.room_id')
+            ->leftJoin('room_using_guest', 'room_using.id', '=', 'room_using_guest.room_using_id')
+            ->leftJoin('guest', 'room_using_guest.guest_id', '=', 'guest.id')
             ->groupBy('floor.id', 'floor.uuid', 'floor.hotel_id', 'floor.floor_number', 'floor.created_at', 'floor.updated_at')
             ->orderBy('floor.floor_number', 'ASC');
 
