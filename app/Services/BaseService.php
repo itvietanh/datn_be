@@ -64,17 +64,33 @@ class BaseService
         return $data;
     }
 
+    public function getListQueryBuilder(Request $request, $query)
+    {
+        $page = $request->query('page', 1);
+        $size = $request->query('size', 20);
+        $size = $size > 200 ? 200 : $size;
+        $countable = filter_var($request->query('countable', true), FILTER_VALIDATE_BOOLEAN);
+
+        // Phân trang với query builder đã được truyền vào
+        if ($countable) {
+            $data = $query->paginate($size, ['*'], 'page', $page);
+        } else {
+            $data = $query->simplePaginate($size, ['*'], 'page', $page);
+        }
+
+        return $data;
+    }
+
     public function getListByWith(Request $request, array $columns = ['*'], callable $whereParams = null, array $with = [])
     {
-        // Lấy thông tin phân trang từ request(Nếu null thì sử dụng giá trị mặc định)
         $page = (int) $request->query('page', 1);
         $size = (int) $request->query('size', 20);
-        // Khởi tạo truy vấn với các cột được chỉ định và với mối quan hệ
+
         $query = $this->model->with($with)->select($columns);
-        // Thực hiện các điều kiện (join, where)
         if ($whereParams && is_callable($whereParams)) {
             $whereParams($query);
         }
+
         $data = $query->paginate($size, ['*'], 'page', $page);
         return $data;
     }
@@ -133,5 +149,11 @@ class BaseService
         $test = Storage::put('public/' . $folder . '/' . $fileName, base64_decode($content));
 
         return $fileName;
+    }
+
+    protected function convertLongToTimestamp($val)
+    {
+        $dateTimestamp = \DateTime::createFromFormat('YmdHis', $val)->format('Y-m-d H:i:s');
+        return $dateTimestamp;
     }
 }

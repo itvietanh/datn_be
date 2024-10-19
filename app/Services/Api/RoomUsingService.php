@@ -4,7 +4,7 @@ namespace App\Services\Api;
 
 use App\Services\BaseService;
 
-use App\Models\RoomUsing; 
+use App\Models\RoomUsingService as RoomUsing;
 
 class RoomUsingService extends BaseService
 {

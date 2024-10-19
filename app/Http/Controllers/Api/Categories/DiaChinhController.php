@@ -25,16 +25,16 @@ class DiaChinhController extends BaseController
 
         $data = [];
 
-        if ($capDiaChinh === "T") {
-            $data = $this->service->getProvinces($req);
-        }
-
-        if ($capDiaChinh === "Q") {
-            $data = $this->service->getDistrictsByProvince($req);
-        }
-
-        if ($capDiaChinh === "P") {
-            $data = $this->service->getWardsByDistrict($req);
+        switch ($capDiaChinh) {
+            case 'T':
+                $data = $this->service->getProvinces($req);
+                break;
+            case 'Q':
+                $data = $this->service->getDistrictsByProvince($req);
+                break;
+            case 'P':
+                $data = $this->service->getWardsByDistrict($req);
+                break;
         }
 
         return $this->getPaging($data);

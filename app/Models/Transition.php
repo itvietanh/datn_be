@@ -11,7 +11,7 @@ class Transition extends Model
 
     protected $table = 'transition';
 
-    protected $fillable = ['uuid', 'guest_id', 'transition_date', 'payment_status', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+    protected $fillable = ['uuid', 'guest_id', 'transition_date', 'payment_status', 'created_at', 'updated_at', 'created_by', 'updated_by', 'total_amout'];
 
     public $timestamps = true;
 
