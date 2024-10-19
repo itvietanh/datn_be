@@ -1,23 +1,24 @@
 <?php
 
-namespace App\Services\Api;
 
-use App\Services\BaseService;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+    namespace App\Services\Api;
 
-//Models
+    use App\Services\BaseService;
 
-use App\Models\Guest;
-use App\Models\RoomType;
-use App\Models\Transition;
-use App\Models\RoomUsing;
-use App\Models\RoomUsingGuest;
-use App\Models\RoomUsingService;
-use App\Models\Room;
-use Carbon\Carbon;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Str;
 
+    //Models
+
+    use App\Models\Guest;
+    use App\Models\RoomType;
+    use App\Models\Transition;
+    use App\Models\RoomUsing;
+    use App\Models\RoomUsingGuest;
+    use App\Models\RoomUsingService;
+    use App\Models\Room;
+    use Carbon\Carbon;
 
 // Enum
 
@@ -25,6 +26,7 @@ use App\RoomStatusEnum;
 
 class OrderRoomService extends BaseService
 {
+
     public function __construct() {}
 
     public function handleOrderRoom(Request $req)
@@ -89,75 +91,75 @@ class OrderRoomService extends BaseService
         return $req->all();
     }
 
+
     public function handleCalculatorPrice(Request $req)
     {
-        // Lấy thông tin phòng dựa vào UUID
         $dataRoom = $this->getRoomByUuid($req->room_uuid);
 
-        // Kiểm tra phòng có tồn tại không
         if (!$dataRoom) {
-            return response()->json([
-                'error' => 'NOT FOUND ROOM'
-            ], 404);
+            return response()->json(['error' => 'NOT FOUND ROOM'], 404);
         }
 
-
-        // Lấy loại phòng dựa vào room_type_id
         $this->model = new RoomType();
-        $roomType = $this->find($dataRoom->room_type_id);
-
+         $roomType = $this->find($dataRoom->room_type_id);
 
         if (!$roomType) {
-            return response()->json([
-                'error' => 'NOT FOUND ROOM TYPE'
-            ], 404);
+            return response()->json(['error' => 'NOT FOUND ROOM TYPE'], 404);
         }
 
-        // Kiểm tra thời gian giữa check-in và check-out
         if ($req->check_in && $req->check_out) {
             $checkIn = \DateTime::createFromFormat('YmdHis', $req->check_in);
             $checkOut = \DateTime::createFromFormat('YmdHis', $req->check_out);
 
             if ($checkIn && $checkOut) {
-                // Tính thời gian chênh lệch giữa check-in và check-out theo giờ
                 $interval = $checkIn->diff($checkOut);
-                $hours = ($interval->days * 24) + $interval->h + ($interval->i / 60); // Chuyển đổi sang giờ
+                $hours = ($interval->days * 24) + $interval->h + ($interval->i / 60);
 
-                // Tính giá tiền dựa trên giờ
+                $totalPrice = 0;
+
                 if ($hours < 24) {
+                    // Tính giá theo giờ
                     $totalPrice = $roomType->price_per_hour * $hours;
                 } else {
-                    // Nếu thời gian >= 24 giờ, tính số ngày và số giờ dư
-                    $days = floor($hours / 24); // Số ngày
-                    $remainingHours = $hours - ($days * 24); // Số giờ còn lại
+                    // Tính giá theo ngày
+                    $days = floor($hours / 24);
+                    $remainingHours = $hours % 24;
 
-                    // Tính tổng tiền: tiền cho số ngày + tiền cho số giờ dư
-                    $totalPrice = ($roomType->price_per_day * $days) + ($roomType->price_per_hour * $remainingHours);
+                    // Tính giá cho các ngày
+                    $totalPrice = $roomType->price_per_day * $days;
+
+                    // Nếu có giờ dư, tính giá theo overtime
+                    if ($remainingHours > 0) {
+                        if ($remainingHours <= 6) {
+                            // Nếu số giờ dư nhỏ hơn 6, tính theo giá overtime
+                            $totalPrice += $roomType->price_overtime;
+                        } else {
+                            // Nếu số giờ dư lớn hơn 6, tính theo giá giờ thông thường
+                            $totalPrice += $roomType->price_per_hour * $remainingHours;
+                        }
+                    }
                 }
 
-                // Tính mã số thuế (VAT)
+                // Tính thuế
                 $vat = $roomType->vat;
                 $tax = ($totalPrice * $vat) / 100;
-
-                // Tổng tiền sau thuế
                 $finalPrice = $totalPrice + $tax;
-                $totalPrice = round($totalPrice, 2);
-                $tax = round($tax, 2);
-                $finalPrice = round($finalPrice, 2);
 
-                $data = [
-                    'total_price' => $totalPrice,
-                    'vat' => $tax,
-                    'final_price' => $finalPrice, // Tổng tiền bao gồm thuế
+                return [
+                    'total_price' => round($totalPrice, 2),
+                    'vat' => round($tax, 2),
+                    'final_price' => round($finalPrice, 2),
                     'check_in' => $req->check_in,
                     'check_out' => $req->check_out,
                 ];
-
-                // Trả về kết quả tính toán
-                return $data;
             }
         }
+
+        return response()->json(['error' => 'INVALID CHECK-IN OR CHECK-OUT'], 400);
     }
+
+
+
 
 
     public function getRoomByUuid($uuid)
@@ -179,8 +181,7 @@ class OrderRoomService extends BaseService
         // // dd($checkInTimeInHCM, $currentTime);
         // // $timeDifference = $checkInTime->diffInMinutes($currentTime);
         // // dd($timeDifference);
-
-        // // if ($timeDifference > 10) {
+// // if ($timeDifference > 10) {
         // //     return response()->json(['error' => 'Không thể đổi phòng vì đã quá 10 phút'], 400);
         // // }
 
