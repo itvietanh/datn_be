@@ -127,14 +127,21 @@ class OrderRoomService extends BaseService
 
                 // Tính giá tiền dựa trên giờ
                 if ($hours < 24) {
+
                     $totalPrice = $roomType->price_per_hour * $hours;
+
+                    $timeNow = Carbon::now();
+                    if ($timeNow > $checkOut) {
+                        $remainingHours = $checkOut->diff($timeNow);
+                        $totalPrice = $totalPrice + ($remainingHours * $roomType->price_per_hour);
+                    }
                 } else {
                     // Nếu thời gian >= 24 giờ, tính số ngày và số giờ dư
                     $days = $hours / 24; // Số ngày
-                    $remainingHours = $hours - ($days * 24); // Số giờ còn lại
+                    $remainingDay = $hours - ($days * 24); // Số giờ còn lại
 
                     // Tính tổng tiền: tiền cho số ngày + tiền cho số giờ dư
-                    $totalPrice = ($roomType->price_per_day * $days) + ($roomType->price_per_hour * $remainingHours);
+                    $totalPrice = $roomType->price_per_day * $days;
                 }
 
                 // Tính mã số thuế (VAT)
@@ -157,7 +164,6 @@ class OrderRoomService extends BaseService
             }
         }
     }
-
 
     public function getRoomByUuid($uuid)
     {
