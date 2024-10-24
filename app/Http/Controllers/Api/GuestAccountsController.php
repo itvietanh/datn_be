@@ -13,7 +13,7 @@ use App\Models\Guest;
 use App\Services\Api\GuestService;
 use Illuminate\Support\Facades\DB;
 
-class GuestController extends BaseController
+class GuestAccountsController extends BaseController
 
 {
     protected $service;
