@@ -210,6 +210,8 @@ Route::group([
             Route::post('', [OrderRoomController::class, 'store']);
             Route::put('', [OrderRoomController::class, 'update']);
             Route::post('calculator', [OrderRoomController::class, 'calulatorPrice']);
+            Route::post('search-rooms', [OrderRoomController::class, 'searchRooms']);
+
         });
 
         Route::group([
