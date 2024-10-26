@@ -17,7 +17,6 @@ use App\Http\Controllers\Api\EmployeeRoleController;
 use App\Http\Controllers\Api\RoomUsingController;
 use App\Http\Controllers\Api\RoomUsingGuestController;
 use App\Http\Controllers\Api\RoomUsingServiceController;
-use App\Http\Controllers\Api\GuestAccountsController;
 use App\Http\Controllers\Api\Categories\DiaChinhController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderRoomController;
@@ -105,17 +104,6 @@ Route::group([
             Route::put('', [GuestController::class, 'update']);
             Route::delete('', [GuestController::class, 'destroy']);
         });
-        Route::group([
-            'prefix' => 'guest-accounts'
-        ], function () {
-            Route::get('get-list', [GuestAccountsController::class, 'index']);
-            Route::get('options', [GuestAccountsController::class, 'getCombobox']);
-            Route::post('', [GuestAccountsController::class, 'store']);
-            Route::get('', [GuestAccountsController::class, 'show']);
-            Route::put('', [GuestAccountsController::class, 'update']);
-            Route::delete('', [GuestAccountsController::class, 'destroy']);
-        });
-
         // Floor
         Route::group([
             'prefix' => 'floor'
