@@ -105,16 +105,17 @@ Route::group([
             Route::put('', [GuestController::class, 'update']);
             Route::delete('', [GuestController::class, 'destroy']);
         });
-        Route::group([
-            'prefix' => 'guest-accounts'
-        ], function () {
-            Route::get('get-list', [GuestAccountsController::class, 'index']);
-            Route::get('options', [GuestAccountsController::class, 'getCombobox']);
-            Route::post('', [GuestAccountsController::class, 'store']);
-            Route::get('', [GuestAccountsController::class, 'show']);
-            Route::put('', [GuestAccountsController::class, 'update']);
-            Route::delete('', [GuestAccountsController::class, 'destroy']);
-        });
+
+        // Route::group([
+        //     'prefix' => 'guest-accounts'
+        // ], function () {
+        //     Route::get('get-list', [GuestAccountsController::class, 'index']);
+        //     Route::get('options', [GuestAccountsController::class, 'getCombobox']);
+        //     Route::post('', [GuestAccountsController::class, 'store']);
+        //     Route::get('', [GuestAccountsController::class, 'show']);
+        //     Route::put('', [GuestAccountsController::class, 'update']);
+        //     Route::delete('', [GuestAccountsController::class, 'destroy']);
+        // });
 
         // Floor
         Route::group([
@@ -210,6 +211,7 @@ Route::group([
             Route::post('', [OrderRoomController::class, 'store']);
             Route::put('', [OrderRoomController::class, 'update']);
             Route::post('calculator', [OrderRoomController::class, 'calulatorPrice']);
+            Route::get('over-time', [OrderRoomController::class, 'handleOverTime']);
         });
 
         Route::group([

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
+use App\Models\Room;
 use App\Services\Api\OrderRoomService;
 
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class OrderRoomController extends BaseController
         $this->service = $service;
     }
 
-    public function store(Request $req) {
+    public function store(Request $req)
+    {
         // dd($req);
         $data = $this->service->handleOrderRoom($req);
         return $this->responseSuccess($data, 201);
@@ -25,8 +27,8 @@ class OrderRoomController extends BaseController
     public function update(Request $req)
     {
         // dd($req);
-        $data = $this->service->updateOrderRoom($req);
-        return $this->responseSuccess($data);
+        // $data = $this->service->updateOrderRoom($req);
+        // return $this->responseSuccess($data);
     }
 
     public function calulatorPrice(Request $req)
@@ -34,4 +36,14 @@ class OrderRoomController extends BaseController
         $data = $this->service->handleCalculatorPrice($req);
         return $this->responseSuccess($data);
     }
+
+    public function handleOverTime(Request $req)
+    {
+        $data = $this->service->updateStatusRoomOverTime($req->uuid);
+        return $this->oneResponse($data);
+    }
+
+    /**
+     * 
+     */
 }

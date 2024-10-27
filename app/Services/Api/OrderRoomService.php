@@ -33,18 +33,22 @@ class OrderRoomService extends BaseService
         $transId = [];
         $roomUsingId = [];
 
-        if (!empty($req->guest)) {
-            $guest = $req->guest;
+        if (!empty($req->guests)) {
+            $guest = $req->guests;
             foreach ($guest as $item) {
                 $this->model = new Guest();
-                $guestId = $this->create($item);
+                $guestId[] = $this->create($item);
             }
         }
 
         if (!empty($req->transition)) {
             $transitionDateTime = $this->convertLongToTimestamp($req->transition['transition_date']);
             $transition = $req->transition;
-            $transition['guest_id'] = $guestId->id;
+            foreach ($guestId as $value) {
+                if ($value->representative === true) {
+                    $transition['guest_id'] = $value->id;
+                }
+            }
             $transition['transition_date'] = $transitionDateTime;
             $this->model = new Transition();
             $transId = $this->create($transition);
@@ -63,7 +67,7 @@ class OrderRoomService extends BaseService
             $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
             $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
             $roomUsingGuest = $req->roomUsingGuest;
-
+            // dd($guestId);
             foreach ($guestId as $value) {
                 $roomUsingGuest['guest_id'] = $value->id;
                 $roomUsingGuest['room_using_id'] = $roomUsingId->id;
@@ -172,39 +176,12 @@ class OrderRoomService extends BaseService
         return $this->findFirstByUuid($uuid);
     }
 
-    public function updateOrderRoom(Request $req)
+    public function updateStatusRoomOverTime($uuid)
     {
-        $this->model = new RoomUsing();
-        $roomUsing = $this->find($req->id);
-
-        $currentTime = Carbon::now('Asia/Ho_Chi_Minh');
-        // $checkInTime = Carbon::parse($roomUsing->check_in)->setTimezone('UTC');
-
-        // // $checkInTimeInHCM = $checkInTime->setTimezone('Asia/Ho_Chi_Minh');
-        // // dd($checkInTimeInHCM, $currentTime);
-        // // $timeDifference = $checkInTime->diffInMinutes($currentTime);
-        // // dd($timeDifference);
-
-        // // if ($timeDifference > 10) {
-        // //     return response()->json(['error' => 'Không thể đổi phòng vì đã quá 10 phút'], 400);
-        // // }
-
-        $roomUsing->is_deleted = 1;
-        $roomUsing->save();
-        $newRoomUsingData = [
-            'uuid' => Str::uuid()->toString(),
-            'trans_id' => $roomUsing->trans_id,
-            'room_id' => $req->new_room_id,
-            'check_in' => $roomUsing->currentTime,
-            'check_out' => $roomUsing->check_out,
-            'created_by' => $roomUsing->created_by,
-            'updated_by' => $roomUsing->updated_by,
-        ];
-        $this->model = new RoomUsing();
-        $newRoomUsing = $this->create($newRoomUsingData);
-        return response()->json([
-            'message' => 'Chuyển phòng thành công',
-            'new_room_using' => $newRoomUsing
-        ]);
+        $data = $this->getRoomByUuid($uuid);
+        $data->status = 3;
+        $this->update($data->id, $data);
     }
+
+    public function roomChange($req) {}
 }

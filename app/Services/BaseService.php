@@ -55,11 +55,8 @@ class BaseService
         if ($whereParams && is_callable($whereParams)) {
             $whereParams($query);
         }
-        if ($countable) {
-            $data = $query->paginate($size, ['*'], 'page', $page);
-        } else {
-            $data = $query->simplePaginate($size, ['*'], 'page', $page);
-        }
+
+        $data = $countable ? $query->paginate($size, ['*'], 'page', $page) : $query->simplePaginate($size, ['*'], 'page', $page);
 
         return $data;
     }
@@ -72,11 +69,7 @@ class BaseService
         $countable = filter_var($request->query('countable', true), FILTER_VALIDATE_BOOLEAN);
 
         // Phân trang với query builder đã được truyền vào
-        if ($countable) {
-            $data = $query->paginate($size, ['*'], 'page', $page);
-        } else {
-            $data = $query->simplePaginate($size, ['*'], 'page', $page);
-        }
+        $data = $countable ? $query->paginate($size, ['*'], 'page', $page) : $query->simplePaginate($size, ['*'], 'page', $page);
 
         return $data;
     }
