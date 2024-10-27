@@ -49,8 +49,10 @@ class EmployeeController extends BaseController
      */
     public function show(Request $req)
     {
-        //
-         
+        $employee = $this->service->findFirstByUuid($req->uuid);
+        if(!$employee) $this -> response404();
+        return $this -> oneResponse($employee);
+
     }
 
     /**
@@ -58,7 +60,12 @@ class EmployeeController extends BaseController
      */
     public function update(Request $request, string $id)
     {
-        //
+        $datareq = $req->all();
+        $employee = $this->service->findFIrstByUuid($req->uuid);
+        if(!$employee) $this-> response404();
+        $data = $this->service->update($employee->id, $datareq);
+        return $this-> responseSuccess($data);
+
     }
 
     /**
@@ -66,6 +73,10 @@ class EmployeeController extends BaseController
      */
     public function destroy(string $id)
     {
-        //
+        $employee = $this->service->findFirstByUud($req->uuid);
+        if(!$employee) $this -> response404();
+        $this->service->delete($employee->id);
+        return $this->responseSuccess($employee);
+
     }
 }
