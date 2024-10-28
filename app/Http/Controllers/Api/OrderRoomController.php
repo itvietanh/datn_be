@@ -25,13 +25,6 @@ class OrderRoomController extends BaseController
         return $this->responseSuccess($data, 201);
     }
 
-    public function update(Request $req)
-    {
-        // dd($req);
-        // $data = $this->service->updateOrderRoom($req);
-        // return $this->responseSuccess($data);
-    }
-
     public function calulatorPrice(Request $req)
     {
         $data = $this->service->handleCalculatorPrice($req);
@@ -41,7 +34,7 @@ class OrderRoomController extends BaseController
     public function handleOverTime(Request $req)
     {
         $data = $this->service->updateStatusRoomOverTime($req->uuid);
-        return $this->oneResponse($data);
+        return $this->oneResponse($data->uuid);
     }
 
     public function searchRooms(Request $req)

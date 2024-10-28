@@ -171,16 +171,16 @@ class OrderRoomService extends BaseService
 
     public function getRoomByUuid($uuid)
     {
-        // Giả sử bạn đã có Room model với hàm findByUuid
         $this->model = new Room();
         return $this->findFirstByUuid($uuid);
     }
 
     public function updateStatusRoomOverTime($uuid)
     {
+
         $data = $this->getRoomByUuid($uuid);
-        $data->status = 3;
-        $this->update($data->id, $data);
+        $params = ['status' => 3];
+        return $this->update($data->id, $params);
     }
 
     public function roomChange($req) {}
