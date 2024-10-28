@@ -32,7 +32,7 @@ class EmployeeController extends BaseController
 
         return $this->getPaging($data);
     }
-
+ 
     /**
      * Store a newly created resource in storage.
      */
@@ -58,7 +58,7 @@ class EmployeeController extends BaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $req, string $id)
     {
         $datareq = $req->all();
         $employee = $this->service->findFIrstByUuid($req->uuid);
@@ -71,9 +71,9 @@ class EmployeeController extends BaseController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id,$req)
     {
-        $employee = $this->service->findFirstByUud($req->uuid);
+        $employee = $this->service->findFirstByUuid($req->uuid);
         if(!$employee) $this -> response404();
         $this->service->delete($employee->id);
         return $this->responseSuccess($employee);
