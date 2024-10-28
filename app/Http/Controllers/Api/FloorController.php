@@ -46,7 +46,9 @@ class FloorController extends BaseController
                                 jsonb_build_object(
                                     'uuid', guest.uuid,
                                     'name', guest.name,
-                                    'phoneNumber', guest.phone_number
+                                    'phoneNumber', guest.phone_number,
+                                    'idNumber', guest.id_number,
+                                    'representative', guest.representative
                                 )
                             )
                             FROM room_using_guest rug
@@ -66,9 +68,9 @@ class FloorController extends BaseController
             ->leftJoin('guest', 'room_using_guest.guest_id', '=', 'guest.id')
             ->groupBy('floor.id', 'floor.uuid', 'floor.hotel_id', 'floor.floor_number', 'floor.created_at', 'floor.updated_at')
             ->orderBy('floor.floor_number', 'ASC');
-
+            
         $data = $this->service->getListQueryBuilder($request, $query);
-
+        // dd($query->toSql());
         // Chuyển đổi rooms từ json string sang json
         $data->getCollection()->transform(function ($item) {
             $item->rooms = json_decode($item->rooms); // Decode rooms JSON string into a JSON object
