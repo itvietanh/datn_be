@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\RoomStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +27,7 @@ class RoomController extends BaseController
     {
         $column = ['uuid', 'hotel_id', 'floor_id', 'room_type_id', 'room_number', 'status', 'created_at', 'updated_at', 'created_by', 'updated_by'];
         $searchParams = (object) $req->only(['hotel_id', 'room_number']);
-        $data = $this->service->getList($req, $column, function($query) use ($searchParams) {
+        $data = $this->service->getList($req, $column, function ($query) use ($searchParams) {
             if (isset($searchParams->hotel_id)) {
                 $query->where('hotel_id', '=', $searchParams->hotel_id);
             }
@@ -43,10 +44,11 @@ class RoomController extends BaseController
 
         $searchParams = (object) $req->only(['hotel_id', 'q']);
 
-        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+        $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
             if (!empty($searchParams->hotel_id)) {
                 $query->where('hotel_id', '=', $searchParams->hotel_id);
             }
+            $query->where('room.status', '=', RoomStatusEnum::PHONG_TRONG->value); // Lấy phòng đang trống
         });
 
         return $this->getPaging($data);

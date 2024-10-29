@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\Cache;
+
 class BaseService
 {
     protected $model;
@@ -43,24 +45,32 @@ class BaseService
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getList(Request $request, $columns = ['*'], $whereParams = null)
+    public function getList(Request $request, $columns = ['*'], $whereParams = null, $cacheable = false)
     {
         $page = $request->query('page', 1);
         $size = $request->query('size', 20);
         $size = $size > 200 ? 200 : $size;
         $countable = filter_var($request->query('countable', true), FILTER_VALIDATE_BOOLEAN);
-
         $query = $this->model->select($columns);
 
         if ($whereParams && is_callable($whereParams)) {
             $whereParams($query);
         }
-        if ($countable) {
-            $data = $query->paginate($size, ['*'], 'page', $page);
-        } else {
-            $data = $query->simplePaginate($size, ['*'], 'page', $page);
-        }
 
+        if ($cacheable) {
+            // Tạo một khóa cache duy nhất cho truy vấn dựa trên tham số đầu vào
+            $cacheKey = 'getList_' . md5(json_encode($request->all()) . json_encode($columns));
+
+            // Sử dụng cache với thời gian 60 phút
+            $data = Cache::remember($cacheKey, 60, function () use ($query, $countable, $size, $page) {
+                return $countable
+                    ? $query->paginate($size, ['*'], 'page', $page)
+                    : $query->simplePaginate($size, ['*'], 'page', $page);
+            });
+        } else {
+            // Không cần cache
+            $data = $countable ? $query->paginate($size, ['*'], 'page', $page) : $query->simplePaginate($size, ['*'], 'page', $page);
+        }
         return $data;
     }
 
@@ -70,14 +80,8 @@ class BaseService
         $size = $request->query('size', 20);
         $size = $size > 200 ? 200 : $size;
         $countable = filter_var($request->query('countable', true), FILTER_VALIDATE_BOOLEAN);
-
         // Phân trang với query builder đã được truyền vào
-        if ($countable) {
-            $data = $query->paginate($size, ['*'], 'page', $page);
-        } else {
-            $data = $query->simplePaginate($size, ['*'], 'page', $page);
-        }
-
+        $data = $countable ? $query->paginate($size, ['*'], 'page', $page) : $query->simplePaginate($size, ['*'], 'page', $page);
         return $data;
     }
 

@@ -3,7 +3,7 @@
 namespace App\Services\Api;
 
 use App\Services\BaseService;
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -22,6 +22,7 @@ use Carbon\Carbon;
 // Enum
 
 use App\RoomStatusEnum;
+// use Illuminate\Container\Attributes\DB;
 
 class OrderRoomService extends BaseService
 {
@@ -33,18 +34,22 @@ class OrderRoomService extends BaseService
         $transId = [];
         $roomUsingId = [];
 
-        if (!empty($req->guest)) {
-            $guest = $req->guest;
+        if (!empty($req->guests)) {
+            $guest = $req->guests;
             foreach ($guest as $item) {
                 $this->model = new Guest();
-                $guestId = $this->create($item);
+                $guestId[] = $this->create($item);
             }
         }
 
         if (!empty($req->transition)) {
             $transitionDateTime = $this->convertLongToTimestamp($req->transition['transition_date']);
             $transition = $req->transition;
-            $transition['guest_id'] = $guestId->id;
+            foreach ($guestId as $value) {
+                if ($value->representative === true) {
+                    $transition['guest_id'] = $value->id;
+                }
+            }
             $transition['transition_date'] = $transitionDateTime;
             $this->model = new Transition();
             $transId = $this->create($transition);
@@ -63,7 +68,7 @@ class OrderRoomService extends BaseService
             $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
             $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
             $roomUsingGuest = $req->roomUsingGuest;
-
+            // dd($guestId);
             foreach ($guestId as $value) {
                 $roomUsingGuest['guest_id'] = $value->id;
                 $roomUsingGuest['room_using_id'] = $roomUsingId->id;
@@ -103,11 +108,9 @@ class OrderRoomService extends BaseService
             ], 404);
         }
 
-
         // Lấy loại phòng dựa vào room_type_id
         $this->model = new RoomType();
         $roomType = $this->find($dataRoom->room_type_id);
-
 
         if (!$roomType) {
             return response()->json([
@@ -117,8 +120,13 @@ class OrderRoomService extends BaseService
 
         // Kiểm tra thời gian giữa check-in và check-out
         if ($req->check_in && $req->check_out) {
-            $checkIn = \DateTime::createFromFormat('YmdHis', $req->check_in);
-            $checkOut = \DateTime::createFromFormat('YmdHis', $req->check_out);
+            if (strlen($req->check_in) == 14) {
+                $checkIn = \DateTime::createFromFormat('YmdHis', $req->check_in);
+                $checkOut = \DateTime::createFromFormat('YmdHis', $req->check_out);
+            } else {
+                $checkIn = new \DateTime($req->check_in);
+                $checkOut = new \DateTime($req->check_out);
+            }
 
             if ($checkIn && $checkOut) {
                 // Tính thời gian chênh lệch giữa check-in và check-out theo giờ
@@ -167,44 +175,73 @@ class OrderRoomService extends BaseService
 
     public function getRoomByUuid($uuid)
     {
-        // Giả sử bạn đã có Room model với hàm findByUuid
         $this->model = new Room();
         return $this->findFirstByUuid($uuid);
     }
 
-    public function updateOrderRoom(Request $req)
+    public function updateStatusRoomOverTime($uuid)
     {
-        $this->model = new RoomUsing();
-        $roomUsing = $this->find($req->id);
 
-        $currentTime = Carbon::now('Asia/Ho_Chi_Minh');
-        // $checkInTime = Carbon::parse($roomUsing->check_in)->setTimezone('UTC');
-
-        // // $checkInTimeInHCM = $checkInTime->setTimezone('Asia/Ho_Chi_Minh');
-        // // dd($checkInTimeInHCM, $currentTime);
-        // // $timeDifference = $checkInTime->diffInMinutes($currentTime);
-        // // dd($timeDifference);
-
-        // // if ($timeDifference > 10) {
-        // //     return response()->json(['error' => 'Không thể đổi phòng vì đã quá 10 phút'], 400);
-        // // }
-
-        $roomUsing->is_deleted = 1;
-        $roomUsing->save();
-        $newRoomUsingData = [
-            'uuid' => Str::uuid()->toString(),
-            'trans_id' => $roomUsing->trans_id,
-            'room_id' => $req->new_room_id,
-            'check_in' => $roomUsing->currentTime,
-            'check_out' => $roomUsing->check_out,
-            'created_by' => $roomUsing->created_by,
-            'updated_by' => $roomUsing->updated_by,
-        ];
-        $this->model = new RoomUsing();
-        $newRoomUsing = $this->create($newRoomUsingData);
-        return response()->json([
-            'message' => 'Chuyển phòng thành công',
-            'new_room_using' => $newRoomUsing
-        ]);
+        $data = $this->getRoomByUuid($uuid);
+        $params = ['status' => 3];
+        return $this->update($data->id, $params);
     }
+<<<<<<< HEAD
+    public function searchRooms($check_in, $check_out, $number_of_people)
+    {
+        $query = DB::table('room')
+            ->select(
+                'room.id',
+                'room.uuid',
+                'room.room_number AS roomNumber',
+                'room.status',
+                'room_type.type_name AS typeName',
+                'room_type.number_of_people AS numberOfPeople',
+                'room_using.check_in AS checkIn',
+                'room_using.check_out AS checkOut',
+                DB::raw("COALESCE(
+                    jsonb_agg(
+                        DISTINCT jsonb_build_object(
+                            'uuid', guest.uuid,
+                            'name', guest.name,
+                            'phoneNumber', guest.phone_number
+                        )
+                    ) FILTER (WHERE guest.id IS NOT NULL),
+                    '[]'::jsonb
+                ) AS guests")
+            )
+            ->join('room_type', 'room.room_type_id', '=', 'room_type.id')
+            ->leftJoin('room_using', 'room.id', '=', 'room_using.room_id')
+            ->leftJoin('room_using_guest', 'room_using.id', '=', 'room_using_guest.room_using_id')
+            ->leftJoin('guest', 'room_using_guest.guest_id', '=', 'guest.id')
+            ->where('room.status', '=', 1)
+            ->where('room_type.number_of_people', '>=', $number_of_people)
+            ->whereNotIn('room.room_number', function($query) use ($check_in, $check_out) {
+                $query->select('room.room_number')
+                      ->from('room_using')
+                      ->where(function($q) use ($check_in, $check_out) {
+                          $q->where('room_using.check_in', '<', $check_out)
+                            ->where('room_using.check_out', '>', $check_in);
+                      });
+            })
+            ->groupBy('room.id', 'room.uuid', 'room.room_number', 'room.status', 'room_type.type_name', 'room_type.number_of_people', 'room_using.check_in', 'room_using.check_out')
+            ->orderBy('room.room_number', 'ASC');
+
+        $rooms = $query->get();
+
+        if ($rooms->isEmpty()) {
+            return null;
+        }
+
+        $rooms->transform(function ($item) {
+            $item->guests = json_decode($item->guests);
+            return $item;
+        });
+
+        return $rooms;
+    }
+=======
+
+    public function roomChange($req) {}
+>>>>>>> e6cbb2b33e5714d436f0a92e65b8d14886ddf074
 }
