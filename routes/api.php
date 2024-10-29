@@ -32,6 +32,7 @@ Route::group([
     Route::get('auth/token', [AuthController::class, 'authToken']);
     Route::post('register', [AuthController::class, 'store']);
     Route::post('auth/login', [AuthController::class, 'login']);
+    Route::middleware([AuthenticateEmployee::class])->get('auth/profile', [AuthController::class, 'getProfile']);
 
     Route::middleware([AuthenticateEmployee::class])->group(function () {
         // Khách sạn

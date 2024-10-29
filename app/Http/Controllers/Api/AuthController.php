@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Http\Requests\EmployeeRequest;
-
+use App\Models\Employee;
 // Service
 use App\Services\Api\EmployeeService;
 
@@ -62,7 +62,7 @@ class AuthController extends BaseController
     public function authToken(Request $req)
     {
         $token = $req->bearerToken();
-        // dd($token);
+
         if (!$token) {
             return response()->json(['error' => 'Unauthorized']);
         }
@@ -74,5 +74,17 @@ class AuthController extends BaseController
         }
 
         return response()->json(['message' => 'Isvalid', 'user' => $user]);
+    }
+
+    // Get user 
+    public function getProfile()
+    {
+        $user = Auth::guard('employee')->user();
+        $res = [
+            "email" => $user->email,
+            "name" => $user->name,
+            "hotelId" => $user->hotel_id
+        ];
+        return $this->oneResponse($res);
     }
 }

@@ -80,10 +80,10 @@ class MenuController extends BaseController
         ]);
 
         // Gọi service để tạo Role mới
-        $Menu = $this->service->create($dataRe);
+        $menu = $this->service->create($dataRe);
 
         // Trả về response thành công
-        return $this->responseSuccess($Menu, 201);
+        return $this->responseSuccess($menu, 201);
     }
 
 
@@ -92,10 +92,10 @@ class MenuController extends BaseController
      */
     public function show(Request $req)
     {
-        $Menu = $this->service->findFirstByUuid($req->uuid);
-        if (!$Menu)
+        $menu = $this->service->findFirstByUuid($req->uuid);
+        if (!$menu)
             $this->response404();
-        return $this->oneResponse($Menu);
+        return $this->oneResponse($menu);
 
     }
 
@@ -115,10 +115,10 @@ class MenuController extends BaseController
             'parent_uid' => 'nullable|uuid',
             'hotel_id' => 'required|integer|exists:hotel,id',
         ]);
-        $Menu = $this->service->findFirstByUuid($req->uuid);
-        if (!$Menu)
+        $menu = $this->service->findFirstByUuid($req->uuid);
+        if (!$menu)
             $this->response404();
-        $data = $this->service->update($Menu->id, $dataRe);
+        $data = $this->service->update($menu->id, $dataRe);
         return $this->responseSuccess($data);
     }
 
@@ -127,9 +127,9 @@ class MenuController extends BaseController
      */
     public function destroy(Request $req)
     {
-        $Menu = $this->service->findFirstByUuid($req->uuid);
-        if (!$Menu) $this->response404();
-        $this->service->delete($Menu->id);
-        return $this->responseSuccess($Menu);
+        $menu = $this->service->findFirstByUuid($req->uuid);
+        if (!$menu) $this->response404();
+        $this->service->delete($menu->id);
+        return $this->responseSuccess($menu);
     }
 }
