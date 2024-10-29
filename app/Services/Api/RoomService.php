@@ -1,11 +1,8 @@
 <?php
 
 namespace App\Services\Api;
-
 use App\Services\BaseService;
-
 use App\Models\Room;
-
 class RoomService extends BaseService
 {
     // Service logic here
@@ -15,3 +12,6 @@ class RoomService extends BaseService
         $this->model = new Room();
     }
 }
+
+
+
