@@ -25,7 +25,7 @@ class ServiceController extends BaseController
         $searchParams = (object) $request->only(['service_name', 'service_price']);
 
         $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
-            $query->with('hotel'); 
+            $query->with('hotel');
             if (isset($searchParams->service_name)) {
                 $query->where('service_name', '=', $searchParams->service_name);
             }
@@ -109,4 +109,5 @@ class ServiceController extends BaseController
         $this->service->delete($service->id);
         return $this->responseSuccess($service);
     }
+    
 }

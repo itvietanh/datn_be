@@ -186,7 +186,7 @@ class OrderRoomService extends BaseService
         $params = ['status' => 3];
         return $this->update($data->id, $params);
     }
-<<<<<<< HEAD
+
     public function searchRooms($check_in, $check_out, $number_of_people)
     {
         $query = DB::table('room')
@@ -240,8 +240,5 @@ class OrderRoomService extends BaseService
 
         return $rooms;
     }
-=======
 
-    public function roomChange($req) {}
->>>>>>> e6cbb2b33e5714d436f0a92e65b8d14886ddf074
 }
