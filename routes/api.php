@@ -71,7 +71,7 @@ Route::group([
             Route::delete('', [RoomController::class, 'destroy']);
         });
 
-        // Phòng
+        // Kiểu phòng
         Route::group([
             'prefix' => 'room-type'
         ], function () {
