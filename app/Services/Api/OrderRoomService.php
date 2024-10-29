@@ -107,11 +107,9 @@ class OrderRoomService extends BaseService
             ], 404);
         }
 
-
         // Lấy loại phòng dựa vào room_type_id
         $this->model = new RoomType();
         $roomType = $this->find($dataRoom->room_type_id);
-
 
         if (!$roomType) {
             return response()->json([
@@ -121,8 +119,13 @@ class OrderRoomService extends BaseService
 
         // Kiểm tra thời gian giữa check-in và check-out
         if ($req->check_in && $req->check_out) {
-            $checkIn = \DateTime::createFromFormat('YmdHis', $req->check_in);
-            $checkOut = \DateTime::createFromFormat('YmdHis', $req->check_out);
+            if (strlen($req->check_in) == 14) {
+                $checkIn = \DateTime::createFromFormat('YmdHis', $req->check_in);
+                $checkOut = \DateTime::createFromFormat('YmdHis', $req->check_out);
+            } else {
+                $checkIn = new \DateTime($req->check_in);
+                $checkOut = new \DateTime($req->check_out);
+            }
 
             if ($checkIn && $checkOut) {
                 // Tính thời gian chênh lệch giữa check-in và check-out theo giờ
