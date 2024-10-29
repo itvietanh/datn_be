@@ -29,7 +29,7 @@ class DiaChinhService extends BaseService
             if (!empty($searchParams->values)) {
                 $query->where('code', '=', $searchParams->values);
             }
-        });
+        }, true);
         return $data;
     }
 
@@ -51,7 +51,7 @@ class DiaChinhService extends BaseService
             if (!empty($searchParams->q)) {
                 $query->where('full_name', 'like', '%' . $searchParams->q . '%');
             }
-        });
+        }, true);
         return $data;
     }
 
@@ -72,7 +72,7 @@ class DiaChinhService extends BaseService
             if (!empty($searchParams->q)) {
                 $query->where('full_name', 'like', '%' . $searchParams->q . '%');
             }
-        });
+        }, true);
         return $data;
     }
 }

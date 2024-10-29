@@ -25,6 +25,8 @@ use App\Http\Middleware\AuthenticateEmployee;
 use App\Http\Controllers\Api\OrderHistoryController;
 use App\Http\Controllers\Api\OverdueRoomsUsingController;
 use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\ServiceStatisticsController;
+use App\Http\Controllers\ServiceStatisticController;
 
 Route::group([
     'prefix' => 'system',
@@ -32,6 +34,7 @@ Route::group([
     Route::get('auth/token', [AuthController::class, 'authToken']);
     Route::post('register', [AuthController::class, 'store']);
     Route::post('auth/login', [AuthController::class, 'login']);
+    Route::middleware([AuthenticateEmployee::class])->get('auth/profile', [AuthController::class, 'getProfile']);
 
     Route::middleware([AuthenticateEmployee::class])->group(function () {
         // Khách sạn
@@ -69,7 +72,7 @@ Route::group([
             Route::delete('', [RoomController::class, 'destroy']);
         });
 
-        // Phòng
+        // Kiểu phòng
         Route::group([
             'prefix' => 'room-type'
         ], function () {
@@ -237,5 +240,17 @@ Route::group([
             Route::put('', [MenuController::class, 'update']);
             Route::delete('', [MenuController::class, 'destroy']);
         });
+
+        Route::group([
+            'prefix' => 'service-statistic'
+        ], function () {
+            Route::get('/total-revenue', [ServiceStatisticsController::class, 'totalRevenue']);
+            Route::get('/service-usage-count', [ServiceStatisticsController::class, 'serviceUsageCount']);
+            Route::get('/monthly-revenue', [ServiceStatisticsController::class, 'monthlyRevenue']);
+            Route::get('/all', [ServiceStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê
+        });
+        
+
+
     });
 });

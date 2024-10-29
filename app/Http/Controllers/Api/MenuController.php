@@ -26,7 +26,7 @@ class MenuController extends BaseController
      */
     public function index(Request $request)
     {
-        $columns = ['uuid', 'code', 'description', 'icon', 'idx', 'is_show', 'name', 'parent_uid', 'hotel_id'];
+        $columns = ['id', 'code', 'description', 'icon', 'idx', 'is_show', 'name', 'parent_uid', 'hotel_id'];
 
         $searchParams = (object) $request->only(['code', 'description', 'icon', 'idx', 'is_show', 'name', 'parent_uid', 'hotel_id']);
 
@@ -34,6 +34,9 @@ class MenuController extends BaseController
 
             if (isset($searchParams->code)) {
                 $query->where('code', 'LIKE', '%' . $searchParams->code . '%');
+            }
+            if (isset($searchParams->id)) {
+                $query->where('id', 'LIKE', '%' . $searchParams->id . '%');
             }
             if (isset($searchParams->description)) {
                 $query->where('description', 'LIKE', '%' . $searchParams->description . '%');
@@ -68,7 +71,7 @@ class MenuController extends BaseController
     {
         // Validate dữ liệu đầu vào
         $dataRe = $request->validate([
-            'uuid' => 'required|uuid',
+            'id' => 'required|id',
             'code' => 'required|string|max:255',
             'description' => 'nullable|string',
             'icon' => 'nullable|string|max:255',
@@ -92,7 +95,7 @@ class MenuController extends BaseController
      */
     public function show(Request $req)
     {
-        $Menu = $this->service->findFirstByUuid($req->uuid);
+        $Menu = $this->service->findFirstByUuid($req->id);
         if (!$Menu)
             $this->response404();
         return $this->oneResponse($Menu);
@@ -105,7 +108,7 @@ class MenuController extends BaseController
     public function update(Request $req)
     {
         $dataRe = $req->validate([
-            'uuid' => 'required|uuid',
+            'id' => 'required|id',
             'code' => 'required|string|max:255',
             'description' => 'nullable|string',
             'icon' => 'nullable|string|max:255',
@@ -115,7 +118,7 @@ class MenuController extends BaseController
             'parent_uid' => 'nullable|uuid',
             'hotel_id' => 'required|integer|exists:hotel,id',
         ]);
-        $Menu = $this->service->findFirstByUuid($req->uuid);
+        $Menu = $this->service->findFirstByUuid($req->id);
         if (!$Menu)
             $this->response404();
         $data = $this->service->update($Menu->id, $dataRe);
@@ -127,7 +130,7 @@ class MenuController extends BaseController
      */
     public function destroy(Request $req)
     {
-        $Menu = $this->service->findFirstByUuid($req->uuid);
+        $Menu = $this->service->findFirstByUuid($req->id);
         if (!$Menu) $this->response404();
         $this->service->delete($Menu->id);
         return $this->responseSuccess($Menu);
