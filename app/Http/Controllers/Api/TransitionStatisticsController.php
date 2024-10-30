@@ -42,19 +42,26 @@ class TransitionStatisticsController extends BaseController
         $statistics = $this->transitionStatisticsService->getAllStatistics();
         return response()->json($statistics);
     }
-    public function transactionsByGuest($guest_id) {
-        $transactions = $this->transitionStatisticsService->getTransactionsByGuest($guest_id);
-        return response()->json(['transactions' => $transactions]);
+
+    public function transactionsByGuest(Request $req)
+    {
+        $transactions = $this->transitionStatisticsService->getTransactionsByGuest($req->guest_id);
+        if (!$transactions) {
+            $this->response404();
+        }
+        return $this->responseSuccess($transactions);
     }
 
     // Phương thức để lấy số giao dịch theo ngày
-    public function transactionsByDate($date) {
+    public function transactionsByDate($date)
+    {
         $transactions = $this->transitionStatisticsService->getTransactionsByDate($date);
         return response()->json(['transactions' => $transactions]);
     }
 
     // Phương thức để lấy tổng số tiền theo ngày
-    public function totalAmountByDate($date) {
+    public function totalAmountByDate($date)
+    {
         $totalAmount = $this->transitionStatisticsService->getTotalAmountByDate($date);
         return response()->json(['total_amount' => $totalAmount]);
     }

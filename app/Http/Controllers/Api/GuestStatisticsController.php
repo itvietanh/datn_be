@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-    
+
 use App\Http\Controllers\BaseController;
 use App\Services\Api\GuestStatisticsService;
 use Illuminate\Http\Request;
@@ -19,7 +19,10 @@ class GuestStatisticsController extends BaseController
     public function totalGuests()
     {
         $totalGuests = $this->guestStatisticsService->getTotalGuests();
-        return response()->json(['total_guests' => $totalGuests]);
+        $data = [
+            'total_guests' => $totalGuests
+        ];
+        return $this->responseSuccess($data);
     }
 
     // Phương thức để lấy số khách mới trong tháng

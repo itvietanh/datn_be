@@ -12,7 +12,8 @@ class ServiceStatisticsController extends BaseController
     protected $service;
     protected $statisticsService; // Khai báo StatisticsService
 
-    public function __construct(ServiceService $service, StatisticsService $statisticsService) {
+    public function __construct(ServiceService $service, StatisticsService $statisticsService)
+    {
         $this->service = $service;
         $this->statisticsService = $statisticsService; // Khởi tạo StatisticsService
     }
@@ -21,7 +22,10 @@ class ServiceStatisticsController extends BaseController
     public function totalRevenue()
     {
         $totalRevenue = $this->statisticsService->getTotalRevenue();
-        return response()->json(['total_revenue' => $totalRevenue]);
+        $data = [
+            'total_revenue' => $totalRevenue
+        ];
+        return $this->responseSuccess($data);
     }
 
     // Phương thức để lấy số lần sử dụng dịch vụ
@@ -38,10 +42,10 @@ class ServiceStatisticsController extends BaseController
         return response()->json($monthlyRevenue);
     }
 
-     // Phương thức để lấy tất cả thống kê dịch vụ
-     public function allStatistics()
-     {
-         $statistics = $this->statisticsService->getAllStatistics(); // Gọi phương thức lấy tất cả thống kê
-         return response()->json($statistics);
-     }
+    // Phương thức để lấy tất cả thống kê dịch vụ
+    public function allStatistics()
+    {
+        $statistics = $this->statisticsService->getAllStatistics(); // Gọi phương thức lấy tất cả thống kê
+        return response()->json($statistics);
+    }
 }
