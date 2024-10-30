@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\GuestStatisticsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Passport;
@@ -249,6 +250,16 @@ Route::group([
             Route::get('/monthly-revenue', [ServiceStatisticsController::class, 'monthlyRevenue']);
             Route::get('/all', [ServiceStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê
         });
+        Route::group([
+            'prefix' => 'guest-statistic'
+        ], function () {
+            Route::get('/total-guests', [GuestStatisticsController::class, 'totalGuests']);
+            Route::get('/new-guests-this-month', [GuestStatisticsController::class, 'newGuestsThisMonth']);
+            Route::get('/active-guests', [GuestStatisticsController::class, 'activeGuests']);
+            Route::get('/all', [GuestStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê khách hàng
+        });
+        
+        
         
 
 
