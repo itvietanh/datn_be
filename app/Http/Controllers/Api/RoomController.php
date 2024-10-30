@@ -42,11 +42,15 @@ class RoomController extends BaseController
     {
         $fillable = ['id as value', DB::raw("CONCAT('Phòng ', room_number) as label")];
 
-        $searchParams = (object) $req->only(['hotel_id', 'q']);
+        $searchParams = (object) $req->only(['hotel_id', 'q', 'room_type_id']);
 
         $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
             if (!empty($searchParams->hotel_id)) {
                 $query->where('hotel_id', '=', $searchParams->hotel_id);
+            }
+
+            if (!empty($searchParams->room_type_id)) {
+                $query->where('room_type_id', '=', $searchParams->room_type_id);
             }
             $query->where('room.status', '=', RoomStatusEnum::PHONG_TRONG->value); // Lấy phòng đang trống
         });

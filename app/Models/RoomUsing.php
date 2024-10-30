@@ -41,9 +41,17 @@ class RoomUsing extends Model
     protected $table = 'room_using';
 
     protected $fillable = [
-        'uuid', 'trans_id', 'room_id',
-        'check_in', 'check_out', 'is_deleted',
-        'created_at', 'updated_at', 'created_by', 'updated_by'
+        'uuid',
+        'trans_id',
+        'room_id',
+        'check_in',
+        'check_out',
+        'is_deleted',
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by',
+        'room_change_fee'
     ];
 
     public $timestamps = true;
@@ -52,7 +60,7 @@ class RoomUsing extends Model
     public function scopeOverdue($query)
     {
         return $query->where('check_out', '<', Carbon::now())
-                     ->where('is_deleted', false);
+            ->where('is_deleted', false);
     }
 
     // Quan hệ với Transition
