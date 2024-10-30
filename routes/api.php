@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\GuestStatisticsController;
+use App\Http\Controllers\Api\TransitionStatisticsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Passport;
@@ -86,9 +88,7 @@ Route::group([
 
         // Giao dịch
         // Transition
-        Route::group([
-            'prefix' => 'transition'
-        ], function () {
+        Route::group([], function () {
             Route::get('get-list', [TransitionController::class, 'index']);
             Route::post('', [TransitionController::class, 'store']);
             Route::get('', [TransitionController::class, 'show']);
@@ -228,7 +228,6 @@ Route::group([
             'prefix' => 'room-using-overdue'
         ], function () {
             Route::get('', [OverdueRoomsUsingController::class, 'index']);
-
         });
 
         Route::group([
@@ -249,8 +248,31 @@ Route::group([
             Route::get('/monthly-revenue', [ServiceStatisticsController::class, 'monthlyRevenue']);
             Route::get('/all', [ServiceStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê
         });
-        
-
-
+        Route::group([
+            'prefix' => 'guest-statistic'
+        ], function () {
+            Route::get('/total-guests', [GuestStatisticsController::class, 'totalGuests']);
+            Route::get('/new-guests-this-month', [GuestStatisticsController::class, 'newGuestsThisMonth']);
+            Route::get('/active-guests', [GuestStatisticsController::class, 'activeGuests']);
+            Route::get('/all', [GuestStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê khách hàng
+        });
+        Route::group(['prefix' => 'transition-statistic'], function () {
+            // Route để lấy tổng số giao dịch
+            Route::get('/total-transactions', [TransitionStatisticsController::class, 'totalTransactions']); // Lấy tổng số giao dịch
+            // Route để lấy số giao dịch mới trong tháng hiện tại
+            Route::get('/new-transactions-this-month', [TransitionStatisticsController::class, 'newTransactionsThisMonth']); // Lấy số giao dịch mới trong tháng
+            // Route để lấy số giao dịch đang hoạt động (có trạng thái hoàn tất)
+            Route::get('/active-transactions', [TransitionStatisticsController::class, 'activeTransactions']); // Lấy số giao dịch đang hoạt động
+            // Route để lấy số giao dịch không hoạt động (chưa hoàn tất)
+            Route::get('/inactive-transactions', [TransitionStatisticsController::class, 'inactiveTransactions']); // Lấy số giao dịch không hoạt động
+            // Route để lấy số giao dịch theo guest_id
+            Route::get('/transactions-by-guest/{guest_id}', [TransitionStatisticsController::class, 'transactionsByGuest']);
+            // Route để lấy số giao dịch theo ngày
+            Route::get('/transactions-by-date/{date}', [TransitionStatisticsController::class, 'transactionsByDate']);
+            // Route để lấy tổng số tiền giao dịch theo ngày
+            Route::get('/total-amount-by-date/{date}', [TransitionStatisticsController::class, 'totalAmountByDate']);
+            // Route để lấy tất cả thống kê giao dịch
+            Route::get('/all', [TransitionStatisticsController::class, 'allStatistics']); // Lấy tất cả thống kê giao dịch
+        });
     });
 });
