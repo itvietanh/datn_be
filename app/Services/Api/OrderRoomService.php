@@ -186,10 +186,7 @@ class OrderRoomService extends BaseService
         $params = ['status' => 3];
         return $this->update($data->id, $params);
     }
-<<<<<<< HEAD
-=======
 
->>>>>>> a45d1691b3f41056c4c840163f1b5c880cfd91d0
     public function searchRooms($check_in, $check_out, $number_of_people)
     {
         $query = DB::table('room')
@@ -219,13 +216,13 @@ class OrderRoomService extends BaseService
             ->leftJoin('guest', 'room_using_guest.guest_id', '=', 'guest.id')
             ->where('room.status', '=', 1)
             ->where('room_type.number_of_people', '>=', $number_of_people)
-            ->whereNotIn('room.room_number', function($query) use ($check_in, $check_out) {
+            ->whereNotIn('room.room_number', function ($query) use ($check_in, $check_out) {
                 $query->select('room.room_number')
-                      ->from('room_using')
-                      ->where(function($q) use ($check_in, $check_out) {
-                          $q->where('room_using.check_in', '<', $check_out)
+                    ->from('room_using')
+                    ->where(function ($q) use ($check_in, $check_out) {
+                        $q->where('room_using.check_in', '<', $check_out)
                             ->where('room_using.check_out', '>', $check_in);
-                      });
+                    });
             })
             ->groupBy('room.id', 'room.uuid', 'room.room_number', 'room.status', 'room_type.type_name', 'room_type.number_of_people', 'room_using.check_in', 'room_using.check_out')
             ->orderBy('room.room_number', 'ASC');
@@ -243,8 +240,4 @@ class OrderRoomService extends BaseService
 
         return $rooms;
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> a45d1691b3f41056c4c840163f1b5c880cfd91d0
 }
