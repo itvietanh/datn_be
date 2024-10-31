@@ -29,14 +29,20 @@ class GuestStatisticsController extends BaseController
     public function newGuestsThisMonth()
     {
         $newGuests = $this->guestStatisticsService->getNewGuestsThisMonth();
-        return response()->json(['new_guests_this_month' => $newGuests]);
+        $data = [
+            'new_guests_this_month' => $newGuests
+        ];
+        return $this->responseSuccess($data);
     }
 
     // Phương thức để lấy số khách đang hoạt động
     public function activeGuests()
     {
         $activeGuests = $this->guestStatisticsService->getActiveGuests();
-        return response()->json(['active_guests' => $activeGuests]);
+        $data = [
+            'active_guests' => $activeGuests
+        ];
+        return $this->responseSuccess($data);
     }
 
     // Phương thức để lấy tất cả thống kê khách hàng

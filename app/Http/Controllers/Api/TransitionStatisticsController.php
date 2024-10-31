@@ -19,27 +19,39 @@ class TransitionStatisticsController extends BaseController
     public function totalTransactions()
     {
         $totalTransactions = $this->transitionStatisticsService->getTotalTransactions();
-        return response()->json(['total_transactions' => $totalTransactions]);
+        $data = [
+            'total_transactions' => $totalTransactions
+        ];
+        return $this->responseSuccess($data);
+        
     }
 
     // Phương thức để lấy số giao dịch mới trong tháng
     public function newTransactionsThisMonth()
     {
         $newTransactions = $this->transitionStatisticsService->getNewTransactionsThisMonth();
-        return response()->json(['new_transactions_this_month' => $newTransactions]);
+        $data = [
+            'new_transactions_this_month' => $newTransactions
+        ];
+        return $this->responseSuccess($data);
+      
     }
 
     // Phương thức để lấy số giao dịch đang hoạt động
     public function activeTransactions()
     {
         $activeTransactions = $this->transitionStatisticsService->getActiveTransactions();
-        return response()->json(['active_transactions' => $activeTransactions]);
+        $data = [
+            'active_transactions' => $activeTransactions
+        ];
+        return $this->responseSuccess($data);
     }
 
     // Phương thức để lấy tất cả thống kê giao dịch
     public function allStatistics()
     {
         $statistics = $this->transitionStatisticsService->getAllStatistics();
+        
         return response()->json($statistics);
     }
 
@@ -56,13 +68,19 @@ class TransitionStatisticsController extends BaseController
     public function transactionsByDate($date)
     {
         $transactions = $this->transitionStatisticsService->getTransactionsByDate($date);
-        return response()->json(['transactions' => $transactions]);
+        $data = [
+            'transactions' => $transactions
+        ];
+        return $this->responseSuccess($data);
     }
 
     // Phương thức để lấy tổng số tiền theo ngày
     public function totalAmountByDate($date)
     {
         $totalAmount = $this->transitionStatisticsService->getTotalAmountByDate($date);
-        return response()->json(['total_amount' => $totalAmount]);
+        $data = [
+            'total_amount' => $totalAmount
+        ];
+        return $this->responseSuccess($data);
     }
 }
