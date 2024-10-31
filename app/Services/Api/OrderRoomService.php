@@ -99,7 +99,9 @@ class OrderRoomService extends BaseService
     public function handleCalculatorPrice(Request $req)
     {
         // Lấy thông tin phòng dựa vào UUID
-        $dataRoom = $this->getRoomByUuid($req->room_uuid);
+        if (!empty($req->id)) $dataRoom = $this->findFirstRoomById($req->id);
+
+        if (!empty($req->room_uuid)) $dataRoom = $this->getRoomByUuid($req->room_uuid);
 
         // Kiểm tra phòng có tồn tại không
         if (!$dataRoom) {
@@ -179,6 +181,12 @@ class OrderRoomService extends BaseService
         return $this->findFirstByUuid($uuid);
     }
 
+    public function findFirstRoomById($id)
+    {
+        $this->model = new Room();
+        return $this->find($id);
+    }
+
     public function updateStatusRoomOverTime($uuid)
     {
 
@@ -186,7 +194,7 @@ class OrderRoomService extends BaseService
         $params = ['status' => 3];
         return $this->update($data->id, $params);
     }
-<<<<<<< HEAD
+
     public function searchRooms($check_in, $check_out, $number_of_people)
     {
         $query = DB::table('room')
@@ -216,13 +224,13 @@ class OrderRoomService extends BaseService
             ->leftJoin('guest', 'room_using_guest.guest_id', '=', 'guest.id')
             ->where('room.status', '=', 1)
             ->where('room_type.number_of_people', '>=', $number_of_people)
-            ->whereNotIn('room.room_number', function($query) use ($check_in, $check_out) {
+            ->whereNotIn('room.room_number', function ($query) use ($check_in, $check_out) {
                 $query->select('room.room_number')
-                      ->from('room_using')
-                      ->where(function($q) use ($check_in, $check_out) {
-                          $q->where('room_using.check_in', '<', $check_out)
+                    ->from('room_using')
+                    ->where(function ($q) use ($check_in, $check_out) {
+                        $q->where('room_using.check_in', '<', $check_out)
                             ->where('room_using.check_out', '>', $check_in);
-                      });
+                    });
             })
             ->groupBy('room.id', 'room.uuid', 'room.room_number', 'room.status', 'room_type.type_name', 'room_type.number_of_people', 'room_using.check_in', 'room_using.check_out')
             ->orderBy('room.room_number', 'ASC');
@@ -240,8 +248,4 @@ class OrderRoomService extends BaseService
 
         return $rooms;
     }
-=======
-
-    public function roomChange($req) {}
->>>>>>> e6cbb2b33e5714d436f0a92e65b8d14886ddf074
 }

@@ -32,30 +32,30 @@ class OrderRoomController extends BaseController
         return $this->responseSuccess($data);
     }
 
-<<<<<<< HEAD
+
    // Phương thức tìm kiếm phòng trống trong OrderRoomController
-public function searchRooms(Request $req)
-{
-    $check_in = $req->input('check_in');
-    $check_out = $req->input('check_out');
-    $number_of_people = $req->input('number_of_people');
+// public function searchRooms(Request $req)
+// {
+//     $check_in = $req->input('check_in');
+//     $check_out = $req->input('check_out');
+//     $number_of_people = $req->input('number_of_people');
 
-    $rooms = $this->service->searchRooms($check_in, $check_out, $number_of_people);
+//     $rooms = $this->service->searchRooms($check_in, $check_out, $number_of_people);
 
-    if (is_null($rooms)) {
-        return response()->json(['message' => 'Không còn đủ phòng trống'], 404);
-    }
+//     if (is_null($rooms)) {
+//         return response()->json(['message' => 'Không còn đủ phòng trống'], 404);
+//     }
 
-    return $this->responseSuccess($rooms);
-}
+//     return $this->responseSuccess($rooms);
+// }
 
 
-=======
-    public function handleOverTime(Request $req)
-    {
-        $data = $this->service->updateStatusRoomOverTime($req->uuid);
-        return $this->oneResponse($data->uuid);
-    }
+
+//     public function handleOverTime(Request $req)
+//     {
+//         $data = $this->service->updateStatusRoomOverTime($req->uuid);
+//         return $this->oneResponse($data->uuid);
+//     }
 
     public function searchRooms(Request $req)
     {
@@ -115,8 +115,5 @@ public function searchRooms(Request $req)
         return response()->json($rooms);
     }
 
-    /**
-     * 
-     */
->>>>>>> e6cbb2b33e5714d436f0a92e65b8d14886ddf074
+
 }

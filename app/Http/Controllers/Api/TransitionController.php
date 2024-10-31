@@ -217,4 +217,7 @@ class TransitionController extends BaseController
         $data = $this->transitionService->delete($transition->id);
         return $this->responseSuccess($data);
     }
+   
+
+
 }

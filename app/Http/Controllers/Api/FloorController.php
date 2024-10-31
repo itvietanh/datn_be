@@ -53,7 +53,7 @@ class FloorController extends BaseController
                             )
                             FROM room_using_guest rug
                             JOIN guest ON rug.guest_id = guest.id
-                            WHERE rug.room_using_id = room_using.id
+                            WHERE (rug.room_using_id = room_using.id and room_using.is_deleted = true)
                         )
                     )
                 ) FILTER (WHERE room.id IS NOT NULL),

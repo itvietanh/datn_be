@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\GuestStatisticsController;
+use App\Http\Controllers\Api\TransitionStatisticsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Passport;
@@ -25,6 +27,8 @@ use App\Http\Middleware\AuthenticateEmployee;
 use App\Http\Controllers\Api\OrderHistoryController;
 use App\Http\Controllers\Api\OverdueRoomsUsingController;
 use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\ServiceStatisticsController;
+use App\Http\Controllers\ServiceStatisticController;
 
 Route::group([
     'prefix' => 'system',
@@ -32,6 +36,7 @@ Route::group([
     Route::get('auth/token', [AuthController::class, 'authToken']);
     Route::post('register', [AuthController::class, 'store']);
     Route::post('auth/login', [AuthController::class, 'login']);
+    Route::middleware([AuthenticateEmployee::class])->get('auth/profile', [AuthController::class, 'getProfile']);
 
     Route::middleware([AuthenticateEmployee::class])->group(function () {
         // Khách sạn
@@ -83,9 +88,7 @@ Route::group([
 
         // Giao dịch
         // Transition
-        Route::group([
-            'prefix' => 'transition'
-        ], function () {
+        Route::group([], function () {
             Route::get('get-list', [TransitionController::class, 'index']);
             Route::post('', [TransitionController::class, 'store']);
             Route::get('', [TransitionController::class, 'show']);
@@ -162,8 +165,6 @@ Route::group([
             Route::delete('', [RoomUsingController::class, 'destroy']);
         });
 
-
-
         // Phòng sử dụng dịch vụ (Lmaf service trước mới đúng cchuws)
         Route::group([
             'prefix' => 'room-using-service'
@@ -205,6 +206,7 @@ Route::group([
             Route::get('options', [DiaChinhController::class, 'getCombobox']);
         });
 
+        /** Đặt phòng */
         Route::group([
             'prefix' => 'order-room'
         ], function () {
@@ -215,17 +217,18 @@ Route::group([
             Route::post('search-rooms', [OrderRoomController::class, 'searchRooms']);
         });
 
+        /** Lịch sử đặt phòng */
         Route::group([
             'prefix' => 'order-history'
         ], function () {
             Route::get('', [OrderHistoryController::class, 'index']);
         });
 
+        /** Danh sách phòng quá hạn*/
         Route::group([
             'prefix' => 'room-using-overdue'
         ], function () {
             Route::get('', [OverdueRoomsUsingController::class, 'index']);
-
         });
 
         Route::group([
@@ -236,6 +239,50 @@ Route::group([
             Route::get('', [MenuController::class, 'show']);
             Route::put('', [MenuController::class, 'update']);
             Route::delete('', [MenuController::class, 'destroy']);
+        });
+
+        Route::group(['prefix' => 'statistic'], function () {
+            /** Thống kê dịch vụ */
+            Route::group([
+                'prefix' => 'service'
+            ], function () {
+                Route::get('/total-revenue', [ServiceStatisticsController::class, 'totalRevenue']);
+                Route::get('/service-usage-count', [ServiceStatisticsController::class, 'serviceUsageCount']);
+                Route::get('/monthly-revenue', [ServiceStatisticsController::class, 'monthlyRevenue']);
+                Route::get('/all', [ServiceStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê
+            });
+
+            /** Thống kê khách hàng */
+            Route::group([
+                'prefix' => 'guest'
+            ], function () {
+                Route::get('/total-guests', [GuestStatisticsController::class, 'totalGuests']);
+                Route::get('/new-guests-this-month', [GuestStatisticsController::class, 'newGuestsThisMonth']);
+                Route::get('/active-guests', [GuestStatisticsController::class, 'activeGuests']);
+                Route::get('/all', [GuestStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê khách hàng
+            });
+
+            /** Thống kê giao dịch */
+            Route::group([
+                'prefix' => 'transactions'
+            ], function () {
+                // Route để lấy tổng số giao dịch
+                Route::get('/total-transactions', [TransitionStatisticsController::class, 'totalTransactions']); // Lấy tổng số giao dịch
+                // Route để lấy số giao dịch mới trong tháng hiện tại
+                Route::get('/new-transactions-this-month', [TransitionStatisticsController::class, 'newTransactionsThisMonth']); // Lấy số giao dịch mới trong tháng
+                // Route để lấy số giao dịch đang hoạt động (có trạng thái hoàn tất)
+                Route::get('/active-transactions', [TransitionStatisticsController::class, 'activeTransactions']); // Lấy số giao dịch đang hoạt động
+                // Route để lấy số giao dịch không hoạt động (chưa hoàn tất)
+                Route::get('/inactive-transactions', [TransitionStatisticsController::class, 'inactiveTransactions']); // Lấy số giao dịch không hoạt động
+                // Route để lấy số giao dịch theo guest_id
+                Route::get('/transactions-by-guest/{guest_id}', [TransitionStatisticsController::class, 'transactionsByGuest']);
+                // Route để lấy số giao dịch theo ngày
+                Route::get('/transactions-by-date/{date}', [TransitionStatisticsController::class, 'transactionsByDate']);
+                // Route để lấy tổng số tiền giao dịch theo ngày
+                Route::get('/total-amount-by-date/{date}', [TransitionStatisticsController::class, 'totalAmountByDate']);
+                // Route để lấy tất cả thống kê giao dịch
+                Route::get('/all', [TransitionStatisticsController::class, 'allStatistics']); // Lấy tất cả thống kê giao dịch
+            });
         });
     });
 });
