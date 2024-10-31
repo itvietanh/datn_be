@@ -19,6 +19,10 @@ class GuestStatisticsController extends BaseController
     public function totalGuests()
     {
         $totalGuests = $this->guestStatisticsService->getTotalGuests();
+        if (empty($totalGuests)) {
+            return response()->json(['error' => 'No guests found'], 404);
+        }
+
         $data = [
             'total_guests' => $totalGuests
         ];
@@ -29,6 +33,10 @@ class GuestStatisticsController extends BaseController
     public function newGuestsThisMonth()
     {
         $newGuests = $this->guestStatisticsService->getNewGuestsThisMonth();
+        if (empty($newGuests)) {
+            return response()->json(['error' => 'No new guests found this month'], 404);
+        }
+
         $data = [
             'new_guests_this_month' => $newGuests
         ];
@@ -39,6 +47,10 @@ class GuestStatisticsController extends BaseController
     public function activeGuests()
     {
         $activeGuests = $this->guestStatisticsService->getActiveGuests();
+        if (empty($activeGuests)) {
+            return response()->json(['error' => 'No active guests found'], 404);
+        }
+
         $data = [
             'active_guests' => $activeGuests
         ];
@@ -49,6 +61,17 @@ class GuestStatisticsController extends BaseController
     public function allStatistics()
     {
         $statistics = $this->guestStatisticsService->getAllStatistics();
-        return response()->json($statistics);
+
+        if (empty($statistics['total_guests']) &&
+            empty($statistics['new_guests_this_month']) &&
+            empty($statistics['active_guests']) &&
+            empty($statistics['inactive_guests'])) {
+            return response()->json(['error' => 'No statistics found'], 404);
+        }
+
+        $data = [
+            'all' => $statistics
+        ];
+        return response()->json($data);
     }
 }
