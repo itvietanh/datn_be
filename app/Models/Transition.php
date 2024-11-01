@@ -9,9 +9,9 @@ class Transition extends Model
 {
     use HasFactory;
 
-    protected $table = 'transition'; 
+    protected $table = 'transition';
 
-    protected $fillable = ['uuid', 'guest_id', 'transition_date', 'payment_status', 'created_at', 'updated_at', 'created_by', 'updated_by', 'total_amout'];
+    protected $fillable = ['uuid', 'guest_id', 'transition_date', 'payment_status', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
     public $timestamps = true;
 

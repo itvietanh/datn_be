@@ -53,7 +53,7 @@ class FloorController extends BaseController
                             )
                             FROM room_using_guest rug
                             JOIN guest ON rug.guest_id = guest.id
-                            WHERE (rug.room_using_id = room_using.id and room_using.is_deleted = true)
+                            WHERE (rug.room_using_id = room_using.id and room_using.deleted_at is null)
                         )
                     )
                 ) FILTER (WHERE room.id IS NOT NULL),
@@ -68,7 +68,7 @@ class FloorController extends BaseController
             ->leftJoin('guest', 'room_using_guest.guest_id', '=', 'guest.id')
             ->groupBy('floor.id', 'floor.uuid', 'floor.hotel_id', 'floor.floor_number', 'floor.created_at', 'floor.updated_at')
             ->orderBy('floor.floor_number', 'ASC');
-            
+
         $data = $this->service->getListQueryBuilder($request, $query);
         // dd($query->toSql());
         // Chuyển đổi rooms từ json string sang json

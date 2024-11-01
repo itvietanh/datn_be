@@ -6,7 +6,7 @@ use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-
+use Ramsey\Uuid\Uuid;
 //Models
 
 use App\Models\Guest;
@@ -247,5 +247,128 @@ class OrderRoomService extends BaseService
         });
 
         return $rooms;
+    }
+
+    /** REQUEST ĐỔI PHÒNG:
+     * uuid: uuid của phòng hiện tại
+     * roomIdNew: id của phòng mới
+     * checkIn - CheckOut: thời gian checkIn, CheckOut của phòng mới
+     */
+
+    /** Change */
+    public function changeRoom($req)
+    {
+        $room = $this->getRoomByUuid($req->uuid);
+        $room->status = 1;
+        $room->save();
+
+        $this->model = new RoomUsing();
+        $roomUsing = $this->model
+            ->where('room_id', $room->id)
+            ->whereNull('deleted_at')->first();
+
+        if ($roomUsing) {
+            /** Update checkOut cho phòng cũ */
+            $roomUsing->check_out = Carbon::now();
+            if (!empty($roomUsing->room_change_fee)) {
+                $roomUsing->room_change_fee = $req->transferFee;
+            }
+
+            if (!empty($roomUsing->total_amount)) {
+                // Nếu có chi phí phát sinh thì cộng vào tổng tiền, không thì chỉ set tổng tiền cho trường total_amount
+                $roomUsing->total_amount = $req->transferFee ? ($req->transferFee + $req->total_amount) : $req->total_amount;
+            }
+
+            $roomUsing->save();
+
+            // Xóa mềm bản ghi room_using, sau đó tạo bản ghi room_using với id phòng mới
+            $roomUsing->delete();
+
+            /** Tạo bản ghi mới room using */
+            $ruNew = $this->createRoomUsingNew($req);
+
+            // Cập nhật lại checkIn | checkOut 
+            $this->updateRUGuest($req, $ruNew->id);
+
+            /** Update trạng thái đang ở cho phòng mới */
+            $this->updateRoomStatus($req->roomIdNew);
+            return $roomUsing;
+        }
+    }
+
+    public function updateRUGuest($req, $roomUsingId)
+    {
+        $this->model = new RoomUsingGuest();
+        $roomUsingGuest = null;
+        foreach ($req->guest as $item) {
+            if (!isset($item['guestUuid'])) {
+                continue;
+            }
+
+            $uuid = $item['guestUuid'];
+
+            $guest = Guest::where('uuid', $uuid)->first();
+
+            $rug = $this->model
+                ->where('guest_id', $guest->id)->first();
+
+            /** Update thời gian checkIn - checkOut của phòng mới */
+            $dataRuGuest = [
+                "room_using_id" => $roomUsingId,
+                "check_in" => $this->convertLongToTimestamp($req->checkIn),
+                "check_out" => $this->convertLongToTimestamp($req->checkOut)
+            ];
+
+            $roomUsingGuest = $this->update($rug->id, $dataRuGuest);
+        }
+
+        return $roomUsingGuest;
+    }
+
+    public function createRoomUsingNew($req)
+    {
+        $guest = $this->getRepresentaive($req);
+        $transition = $this->findFirstTransition($guest->id);
+        // dd($transition);
+        if ($transition) {
+            $this->model = new RoomUsing();
+            $newRoomUsing = [
+                "uuid" => str_replace('-', '', Uuid::uuid4()->toString()),
+                "room_id" => $req->roomIdNew,
+                "check_in" => $this->convertLongToTimestamp($req->checkIn),
+                "trans_id" => $transition->id,
+                "total_amount" => $req->totalAmount,
+            ];
+            return $this->create($newRoomUsing);
+        }
+        return null;
+    }
+
+    public function getRepresentaive($req)
+    {
+        $guestId = null;
+        foreach ($req->guest as $item) {
+            if (isset($item['representative']) && $item['representative'] === true) {
+                $guestId = Guest::where('uuid', $item['guestUuid'])->first();
+            }
+        }
+        $guest = Guest::where('id', $guestId->id)
+            ->where('representative', true)
+            ->first();
+        return $guest;
+    }
+
+    public function updateRoomStatus($id)
+    {
+        $this->model = new Room();
+        $room = $this->model->find($id);
+        $room->status = 2;
+        $room->save();
+    }
+
+    public function findFirstTransition($guestId)
+    {
+        $transition = Transition::where('guest_id', $guestId)->first();
+        return $transition;
     }
 }

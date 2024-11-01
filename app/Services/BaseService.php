@@ -61,8 +61,8 @@ class BaseService
             // Tạo một khóa cache duy nhất cho truy vấn dựa trên tham số đầu vào
             $cacheKey = 'getList_' . md5(json_encode($request->all()) . json_encode($columns));
 
-            // Sử dụng cache với thời gian 60 phút
-            $data = Cache::remember($cacheKey, 60, function () use ($query, $countable, $size, $page) {
+            // Sử dụng cache với thời gian 10 phút
+            $data = Cache::remember($cacheKey, 10, function () use ($query, $countable, $size, $page) {
                 return $countable
                     ? $query->paginate($size, ['*'], 'page', $page)
                     : $query->simplePaginate($size, ['*'], 'page', $page);
@@ -103,6 +103,7 @@ class BaseService
     public function find($id, $with = null)
     {
         $query = $this->model;
+
         if ($with) {
             $query = $query->with($with);
         }

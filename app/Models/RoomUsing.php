@@ -32,11 +32,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
 class RoomUsing extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'room_using';
 
@@ -51,10 +52,14 @@ class RoomUsing extends Model
         'updated_at',
         'created_by',
         'updated_by',
-        'room_change_fee'
+        'room_change_fee',
+        'total_amout',
+        'prepaid'
     ];
 
     public $timestamps = true;
+
+    protected $dates = ['deleted_at'];
 
     // Scope lấy danh sách phòng quá hạn
     public function scopeOverdue($query)

@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
+use App\Models\Guest;
 use App\Models\Room;
 use App\Services\Api\OrderRoomService;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
+use Maatwebsite\Excel\Facades\Excel;
+
+use App\Services\Api\ImportDataService;
 
 class OrderRoomController extends BaseController
 {
@@ -31,31 +36,6 @@ class OrderRoomController extends BaseController
         $data = $this->service->handleCalculatorPrice($req);
         return $this->responseSuccess($data);
     }
-
-
-   // Phương thức tìm kiếm phòng trống trong OrderRoomController
-// public function searchRooms(Request $req)
-// {
-//     $check_in = $req->input('check_in');
-//     $check_out = $req->input('check_out');
-//     $number_of_people = $req->input('number_of_people');
-
-//     $rooms = $this->service->searchRooms($check_in, $check_out, $number_of_people);
-
-//     if (is_null($rooms)) {
-//         return response()->json(['message' => 'Không còn đủ phòng trống'], 404);
-//     }
-
-//     return $this->responseSuccess($rooms);
-// }
-
-
-
-//     public function handleOverTime(Request $req)
-//     {
-//         $data = $this->service->updateStatusRoomOverTime($req->uuid);
-//         return $this->oneResponse($data->uuid);
-//     }
 
     public function searchRooms(Request $req)
     {
@@ -115,5 +95,31 @@ class OrderRoomController extends BaseController
         return response()->json($rooms);
     }
 
+    public function handleOverTime(Request $req)
+    {
+        $data = $this->service->updateStatusRoomOverTime($req->uuid);
+        return $this->oneResponse($data->uuid);
+    }
 
+    public function handleRoomChange(Request $req)
+    {
+        $data = $this->service->changeRoom($req);
+        return $this->responseSuccess($data);
+    }
+
+    public function importDataGuest(Request $req)
+    {
+        $req->validate([
+            'file' => 'required|file|mimes:xlsx'
+        ]);
+
+        try {
+            Excel::import(new ImportDataService, $req->file('file'));
+            return $this->responseSuccess([
+                "message" => "Import dữ liệu thành công"
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Lỗi khi import dữ liệu', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

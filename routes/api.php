@@ -215,6 +215,14 @@ Route::group([
             Route::post('calculator', [OrderRoomController::class, 'calulatorPrice']);
             Route::get('over-time', [OrderRoomController::class, 'handleOverTime']);
             Route::post('search-rooms', [OrderRoomController::class, 'searchRooms']);
+            Route::post('room-change-fee', [OrderRoomController::class, 'handleRoomChange']);
+
+            /** Import excel list guest */
+            Route::group([
+                'prefix' => 'import'
+            ], function () {
+                Route::post('list-guest', [OrderRoomController::class, 'importDataGuest']);
+            });
         });
 
         /** Lịch sử đặt phòng */
