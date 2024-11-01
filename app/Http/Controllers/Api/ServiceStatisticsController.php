@@ -32,7 +32,11 @@ class ServiceStatisticsController extends BaseController
     public function serviceUsageCount()
     {
         $serviceUsageCount = $this->statisticsService->getServiceUsageCount();
-        return response()->json(['service_usage_count' => $serviceUsageCount]);
+        $data = [
+            'service_usage_count' => $serviceUsageCount
+        ];
+        return $this->responseSuccess($data);
+        
     }
 
     // Phương thức để lấy doanh thu hàng tháng

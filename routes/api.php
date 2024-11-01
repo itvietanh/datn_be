@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\GuestStatisticsController;
-use App\Http\Controllers\Api\TransitionStatisticsController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Passport;
@@ -29,6 +28,9 @@ use App\Http\Controllers\Api\OverdueRoomsUsingController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\ServiceStatisticsController;
 use App\Http\Controllers\ServiceStatisticController;
+use App\Http\Controllers\Api\EmployeeStatisticsController;
+use App\Http\Controllers\Api\GuestStatisticsController;
+use App\Http\Controllers\Api\TransitionStatisticsController;
 
 Route::group([
     'prefix' => 'system',
@@ -291,6 +293,19 @@ Route::group([
                 // Route để lấy tất cả thống kê giao dịch
                 Route::get('/all', [TransitionStatisticsController::class, 'allStatistics']); // Lấy tất cả thống kê giao dịch
             });
+            /** Thống kê nhân viên */
+            Route::group([
+                'prefix' => 'employee'
+            ], function () {
+                Route::get('/total-employees', [EmployeeStatisticsController::class, 'totalEmployees']);
+                Route::get('/new-employees-this-month', [EmployeeStatisticsController::class, 'newEmployeesThisMonth']);
+                Route::get('/active-employees', [EmployeeStatisticsController::class, 'activeEmployees']);
+                Route::get('/by-hotel/{hotelId}', [EmployeeStatisticsController::class, 'employeesByHotel']);
+                Route::get('/details', [EmployeeStatisticsController::class, 'employeeDetails']);
+                Route::get('/all', [EmployeeStatisticsController::class, 'allStatistics']);
+            });
+            
+
         });
     });
 });
