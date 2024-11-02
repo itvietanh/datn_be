@@ -63,8 +63,11 @@ class FloorController extends BaseController
             ->join('hotel', 'floor.hotel_id', '=', 'hotel.id')
             ->leftJoin('room', 'room.floor_id', '=', 'floor.id')
             ->leftJoin('room_type', 'room.room_type_id', '=', 'room_type.id')
-            ->leftJoin('room_using', 'room.id', '=', 'room_using.room_id')
-            ->leftJoin('room_using_guest', 'room_using.id', '=', 'room_using_guest.room_using_id')
+            ->leftJoin('room_using', function ($join) {
+                $join->on('room.id', '=', 'room_using.room_id')
+                    ->whereNull('room_using.deleted_at');
+            })
+            ->leftjoin('room_using_guest', 'room_using.id', '=', 'room_using_guest.room_using_id')
             ->leftJoin('guest', 'room_using_guest.guest_id', '=', 'guest.id')
             ->groupBy('floor.id', 'floor.uuid', 'floor.hotel_id', 'floor.floor_number', 'floor.created_at', 'floor.updated_at')
             ->orderBy('floor.floor_number', 'ASC');
