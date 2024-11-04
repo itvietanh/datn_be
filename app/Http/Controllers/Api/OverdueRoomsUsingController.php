@@ -44,15 +44,22 @@ class OverdueRoomsUsingController extends BaseController
 
     public function index(Request $request)
     {
-        $query = DB::table('room_using as ru')
-            ->select(
-                'ru.*'
-            )
-            ->join('room as r', 'ru.room_id', '=', 'r.id')
-            ->where("r.status",  1)
-            ->where(DB::raw('CURRENT_DATE'), '>', DB::raw('ru.check_out'));
-        $data = $this->RoomUsing->getListQueryBuilder($request, $query);
+        try {
+            $query = DB::table('room_using as ru')
+                ->select('ru.*', 'r.room_number')
+                ->join('room as r', 'ru.room_id', '=', 'r.id')
+                ->where('r.status', 1)
+                ->whereDate('ru.check_out', '<', now());
 
-        return $this->getPaging($data);
+            $data = $this->RoomUsing->getListQueryBuilder($request, $query);
+
+            return $this->getPaging($data);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Có lỗi xảy ra khi truy xuất dữ liệu phòng quá hạn.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
