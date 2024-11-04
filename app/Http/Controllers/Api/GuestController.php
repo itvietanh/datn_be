@@ -104,4 +104,12 @@ class GuestController extends BaseController
         $data = $this->service->delete($guest->id);
         return $this->responseSuccess($data);
     }
+
+    public function insertRoomUsingGuest(Request $request)
+    {
+        $data = $this->service->findFirstByUuid($request->uuid);
+        $params = $request->all();
+        
+        $guest = $this->service->create($params);
+    }
 }

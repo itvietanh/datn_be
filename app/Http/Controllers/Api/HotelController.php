@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 // Request
 use App\Http\Requests\HotelRequest;
-
+use App\Models\Hotel;
 // Service
 use App\Services\Api\HotelService;
 
@@ -31,7 +31,7 @@ class HotelController extends BaseController
 
         $searchParams = (object) $req->only(['name', 'address']);
 
-        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+        $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
             if (!empty($searchParams->name)) {
                 $query->where('name', 'like', '%' . $searchParams->name . '%');
             }
@@ -50,7 +50,7 @@ class HotelController extends BaseController
 
         $searchParams = (object) $req->only(['id', 'q']);
 
-        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+        $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
             if (!empty($searchParams->q)) {
                 $query->where('name', 'like', '%' . $searchParams->q . '%');
             }
@@ -89,7 +89,7 @@ class HotelController extends BaseController
     {
         $hotel = $this->service->findFirstByUuid($req->uuid);
         if (!$hotel) {
-            return $this->response404(); 
+            return $this->response404();
         }
         $data = $this->service->update($hotel->id, $req->all());
         return $this->responseSuccess($data);
@@ -102,7 +102,7 @@ class HotelController extends BaseController
     {
         $hotel = $this->service->findFirstByUuid($req->uuid);
         if (!$hotel) {
-            return $this->response404(); 
+            return $this->response404();
         }
         $data = $this->service->delete($hotel->id);
         return $this->responseSuccess($data);

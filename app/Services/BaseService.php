@@ -85,6 +85,11 @@ class BaseService
         return $data;
     }
 
+    public function getOneQueryBuilder($query)
+    {
+        return $query->first();
+    }
+
     public function getListByWith(Request $request, array $columns = ['*'], callable $whereParams = null, array $with = [])
     {
         $page = (int) $request->query('page', 1);
@@ -158,7 +163,16 @@ class BaseService
 
     protected function convertLongToTimestamp($val)
     {
-        $dateTimestamp = \DateTime::createFromFormat('YmdHis', $val)->format('Y-m-d H:i:s');
-        return $dateTimestamp;
+        if ($val instanceof \DateTime) {
+            return $val->format('Y-m-d H:i:s');
+        }
+
+        if (is_string($val) && \DateTime::createFromFormat('Y-m-d H:i:s', $val) !== false) {
+            return $val;
+        }
+
+        $dateTimestamp = \DateTime::createFromFormat('YmdHis', $val);
+
+        return $dateTimestamp ? $dateTimestamp->format('Y-m-d H:i:s') : null;
     }
 }

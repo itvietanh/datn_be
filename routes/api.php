@@ -31,6 +31,7 @@ use App\Http\Controllers\ServiceStatisticController;
 use App\Http\Controllers\Api\EmployeeStatisticsController;
 use App\Http\Controllers\Api\GuestStatisticsController;
 use App\Http\Controllers\Api\TransitionStatisticsController;
+use App\Http\Controllers\Api\HomeHotelController;
 
 Route::group([
     'prefix' => 'system',
@@ -185,6 +186,7 @@ Route::group([
         ], function () {
             Route::get('get-list', [RoomUsingGuestController::class, 'index']);
             Route::post('', [RoomUsingGuestController::class, 'store']);
+            Route::post('insert-guest', [GuestController::class, 'inset-guest']);
             Route::get('', [RoomUsingGuestController::class, 'show']);
             Route::put('', [RoomUsingGuestController::class, 'update']);
             Route::delete('', [RoomUsingGuestController::class, 'destroy']);
@@ -304,8 +306,14 @@ Route::group([
                 Route::get('/details', [EmployeeStatisticsController::class, 'employeeDetails']);
                 Route::get('/all', [EmployeeStatisticsController::class, 'allStatistics']);
             });
-            
+        });
 
+        Route::group([
+            'prefix' => 'home-hotel'
+        ], function () {
+            Route::get('get-room-using', [HomeHotelController::class, 'getRoomUsing']);
+            Route::get('get-room-using-guest', [HomeHotelController::class, 'getRoomUsingGuest']);
+            Route::post('add-guest-room-using', [HomeHotelController::class, 'addGuestRoomUsing']);
         });
     });
 });

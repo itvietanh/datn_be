@@ -72,6 +72,14 @@ class FloorController extends BaseController
             ->groupBy('floor.id', 'floor.uuid', 'floor.hotel_id', 'floor.floor_number', 'floor.created_at', 'floor.updated_at')
             ->orderBy('floor.floor_number', 'ASC');
 
+        if ($request->has('floor_id')) {
+            $query->where('floor.id', $request->floor_id);
+        }
+
+        if ($request->has('status')) {
+            $query->where('room.status', $request->status);
+        }
+
         $data = $this->service->getListQueryBuilder($request, $query);
         // dd($query->toSql());
         // Chuyển đổi rooms từ json string sang json

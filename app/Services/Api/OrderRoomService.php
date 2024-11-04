@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Ramsey\Uuid\Uuid;
-//Models
 
+//Models
 use App\Models\Guest;
 use App\Models\RoomType;
 use App\Models\Transition;
@@ -70,6 +70,7 @@ class OrderRoomService extends BaseService
             $roomUsingGuest = $req->roomUsingGuest;
             // dd($guestId);
             foreach ($guestId as $value) {
+                $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
                 $roomUsingGuest['guest_id'] = $value->id;
                 $roomUsingGuest['room_using_id'] = $roomUsingId->id;
                 $roomUsingGuest['check_in'] = $checkIn;
