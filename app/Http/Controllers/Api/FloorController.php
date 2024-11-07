@@ -27,38 +27,38 @@ class FloorController extends BaseController
                 'floor.created_at AS createdAt',
                 'floor.updated_at AS updatedAt',
                 DB::raw("COALESCE(
-                jsonb_agg(
-                    DISTINCT jsonb_build_object(
-                        'roomUuid', room.uuid,
-                        'roomNumber', room.room_number,
-                        'status', room.status,
-                        'typeName', room_type.type_name,
-                        'numberOfPeople', room_type.number_of_people,
-                        'checkIn', room_using_guest.check_in,
-                        'checkOut', room_using_guest.check_out,
-                        'totalGuests', (
-                            SELECT COUNT(*)
-                            FROM room_using_guest rug
-                            WHERE rug.room_using_id = room_using.id
-                        ),
-                        'room_using_guest', (
-                            SELECT jsonb_agg(
-                                jsonb_build_object(
-                                    'uuid', guest.uuid,
-                                    'name', guest.name,
-                                    'phoneNumber', guest.phone_number,
-                                    'idNumber', guest.id_number,
-                                    'representative', guest.representative
-                                )
+            jsonb_agg(
+                DISTINCT jsonb_build_object(
+                    'roomUuid', room.uuid,
+                    'roomNumber', room.room_number,
+                    'status', room.status,
+                    'typeName', room_type.type_name,
+                    'numberOfPeople', room_type.number_of_people,
+                    'checkIn', room_using.check_in,
+                    'checkOut', room_using.check_out,
+                    'totalGuests', (
+                        SELECT COUNT(*)
+                        FROM room_using_guest rug
+                        WHERE rug.room_using_id = room_using.id
+                    ),
+                    'room_using_guest', (
+                        SELECT jsonb_agg(
+                            DISTINCT jsonb_build_object(
+                                'uuid', guest.uuid,
+                                'name', guest.name,
+                                'phoneNumber', guest.phone_number,
+                                'idNumber', guest.id_number,
+                                'representative', guest.representative
                             )
-                            FROM room_using_guest rug
-                            JOIN guest ON rug.guest_id = guest.id
-                            WHERE (rug.room_using_id = room_using.id and room_using.deleted_at is null)
                         )
+                        FROM room_using_guest rug
+                        JOIN guest ON rug.guest_id = guest.id
+                        WHERE (rug.room_using_id = room_using.id AND room_using.deleted_at IS NULL)
                     )
-                ) FILTER (WHERE room.id IS NOT NULL),
-                '[]'::jsonb
-            ) AS rooms")
+                )
+            ) FILTER (WHERE room.id IS NOT NULL),
+            '[]'::jsonb
+        ) AS rooms")
             )
             ->join('hotel', 'floor.hotel_id', '=', 'hotel.id')
             ->leftJoin('room', 'room.floor_id', '=', 'floor.id')
@@ -67,7 +67,7 @@ class FloorController extends BaseController
                 $join->on('room.id', '=', 'room_using.room_id')
                     ->whereNull('room_using.deleted_at');
             })
-            ->leftjoin('room_using_guest', 'room_using.id', '=', 'room_using_guest.room_using_id')
+            ->leftJoin('room_using_guest', 'room_using.id', '=', 'room_using_guest.room_using_id')
             ->leftJoin('guest', 'room_using_guest.guest_id', '=', 'guest.id')
             ->groupBy('floor.id', 'floor.uuid', 'floor.hotel_id', 'floor.floor_number', 'floor.created_at', 'floor.updated_at')
             ->orderBy('floor.floor_number', 'ASC');
@@ -81,15 +81,16 @@ class FloorController extends BaseController
         }
 
         $data = $this->service->getListQueryBuilder($request, $query);
-        // dd($query->toSql());
-        // Chuyển đổi rooms từ json string sang json
+
+        // Chuyển đổi rooms từ chuỗi JSON sang đối tượng JSON
         $data->getCollection()->transform(function ($item) {
-            $item->rooms = json_decode($item->rooms); // Decode rooms JSON string into a JSON object
+            $item->rooms = json_decode($item->rooms);
             return $item;
         });
 
         return $this->getPaging($data);
     }
+
 
 
     public function getCombobox(Request $req)

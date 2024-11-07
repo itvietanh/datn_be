@@ -107,6 +107,12 @@ class OrderRoomController extends BaseController
         return $this->responseSuccess($data);
     }
 
+    public function handleSearchRooms(Request $req)
+    {
+        $data = $this->service->searchRoomsAvailable($req);
+        return $data ? $this->getPaging($data) : $this->oneResponse($data);
+    }
+
     public function importDataGuest(Request $req)
     {
         $req->validate([

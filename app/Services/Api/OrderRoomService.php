@@ -372,4 +372,39 @@ class OrderRoomService extends BaseService
         $transition = Transition::where('guest_id', $guestId)->first();
         return $transition;
     }
+
+    /**
+     * Tìm kiếm phòng trống
+     */
+    public function searchRoomsAvailable($req)
+    {
+        $check_in = $this->convertLongToTimestamp($req->checkIn);
+        $check_out = $this->convertLongToTimestamp($req->checkOut);
+
+        // Tìm danh sách phòng khả dụng
+        $availableRooms = $this->getAvailableRoomsQuery($check_in, $check_out)
+            ->select('r.*', 'rt.number_of_people');
+
+        $totalCapacity = $availableRooms->sum('number_of_people');
+
+        return ($totalCapacity >= $req->totalGuests)
+            ? $this->getListQueryBuilder($req, $availableRooms)
+            : null;
+    }
+
+    private function getAvailableRoomsQuery($check_in, $check_out)
+    {
+        return DB::table('room as r')
+            ->join('room_type as rt', 'r.room_type_id', '=', 'rt.id')
+            ->where('r.status', 1)
+            ->whereNotExists(function ($query) use ($check_in, $check_out) {
+                $query->select(DB::raw(1))
+                    ->from('bookings as b')
+                    ->whereColumn('b.room_id', 'r.id')
+                    ->where(function ($query) use ($check_in, $check_out) {
+                        $query->where('b.check_in', '<=', $check_out)
+                            ->where('b.check_out', '>=', $check_in);
+                    });
+            });
+    }
 }

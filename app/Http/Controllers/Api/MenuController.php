@@ -69,21 +69,9 @@ class MenuController extends BaseController
      */
     public function store(Request $request)
     {
-        // Validate dữ liệu đầu vào
-        $dataRe = $request->validate([
-            'id' => 'required|id',
-            'code' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string|max:255',
-            'idx' => 'required|integer',
-            'is_show' => 'required|boolean',
-            'name' => 'required|string|max:255',
-            'parent_uid' => 'nullable|uuid',
-            'hotel_id' => 'required|integer|exists:hotel,id',
-        ]);
 
         // Gọi service để tạo Role mới
-        $Menu = $this->service->create($dataRe);
+        $Menu = $this->service->create($request->all());
 
         // Trả về response thành công
         return $this->responseSuccess($Menu, 201);
@@ -107,21 +95,10 @@ class MenuController extends BaseController
      */
     public function update(Request $req)
     {
-        $dataRe = $req->validate([
-            'id' => 'required|id',
-            'code' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string|max:255',
-            'idx' => 'required|integer',
-            'is_show' => 'required|boolean',
-            'name' => 'required|string|max:255',
-            'parent_uid' => 'nullable|uuid',
-            'hotel_id' => 'required|integer|exists:hotel,id',
-        ]);
         $Menu = $this->service->findFirstByUuid($req->id);
         if (!$Menu)
             $this->response404();
-        $data = $this->service->update($Menu->id, $dataRe);
+        $data = $this->service->update($Menu->id, $req->all());
         return $this->responseSuccess($data);
     }
 

@@ -22,19 +22,22 @@ class BaseController extends Controller
      */
     public function getPaging($data)
     {
+        $meta = [
+            'page' => $data->currentPage(),
+            'size' => $data->perPage(),
+            'total' => method_exists($data, 'total') ? $data->total() : null,
+            'hasNextPage' => $data->hasMorePages(),
+        ];
+
         return response()->json([
             'code' => 'OK',
             'data' => [
                 'items' => $data->items(),
-                'meta' => [
-                    'page' => $data->currentPage(),
-                    'size' => $data->perPage(),
-                    'total' => method_exists($data, 'total') ? $data->total() : null,
-                    'hasNextPage' => $data->hasMorePages(),
-                ]
+                'meta' => $meta
             ]
         ]);
     }
+
 
     /**
      * Hàm lấy một kết quả từ model.

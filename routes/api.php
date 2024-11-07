@@ -220,6 +220,7 @@ Route::group([
             Route::get('over-time', [OrderRoomController::class, 'handleOverTime']);
             Route::post('search-rooms', [OrderRoomController::class, 'searchRooms']);
             Route::post('room-change-fee', [OrderRoomController::class, 'handleRoomChange']);
+            Route::get('search-rooms', [OrderRoomController::class, 'handleSearchRooms']);
 
             /** Import excel list guest */
             Route::group([
