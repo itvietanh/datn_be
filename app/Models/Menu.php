@@ -11,7 +11,7 @@ class Menu extends Model
 
     protected $table = 'menu';
 
-    protected $fillable = ['uuid', 'code', 'description','icon', 'idx', 'is_show', 'name', 'parent_uid', 'url', 'hotel_id'];
+    protected $fillable = ['id', 'uuid', 'code', 'description','icon', 'idx', 'is_show', 'name', 'parent_uid', 'url', 'hotel_id'];
 
     public $timestamps = false;
 }
