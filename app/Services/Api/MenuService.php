@@ -12,4 +12,9 @@ class MenuService extends BaseService
     {
         $this->model = new Menu();
     }
+
+    public function findFirstById($id)
+    {
+        return Menu::where('id', $id)->first();
+    }
 }
