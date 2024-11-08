@@ -218,7 +218,7 @@ Route::group([
             Route::put('', [OrderRoomController::class, 'update']);
             Route::post('calculator', [OrderRoomController::class, 'calulatorPrice']);
             Route::get('over-time', [OrderRoomController::class, 'handleOverTime']);
-            Route::post('search-rooms', [OrderRoomController::class, 'searchRooms']);
+            // Route::post('search-rooms', [OrderRoomController::class, 'searchRooms']);
             Route::post('room-change-fee', [OrderRoomController::class, 'handleRoomChange']);
             Route::get('search-rooms', [OrderRoomController::class, 'handleSearchRooms']);
 
