@@ -26,7 +26,7 @@ class MenuController extends BaseController
      */
     public function index(Request $request)
     {
-        $columns = ['id', 'code', 'description', 'icon', 'idx', 'is_show', 'name', 'parent_uid', 'hotel_id'];
+        $columns = ['id', 'code', 'description', 'icon', 'idx', 'is_show as isShow', 'url', 'name', 'parent_uid as parentUid', 'hotel_id as hotelId'];
 
         $searchParams = (object) $request->only(['code', 'description', 'icon', 'idx', 'is_show', 'name', 'parent_uid', 'hotel_id']);
 
@@ -59,7 +59,6 @@ class MenuController extends BaseController
             if (isset($searchParams->hotel_id)) {
                 $query->where('hotel_id', 'LIKE', '%' . $searchParams->hotel_id . '%');
             }
-
         });
         return $this->getPaging($data);
     }
@@ -87,7 +86,6 @@ class MenuController extends BaseController
         if (!$Menu)
             $this->response404();
         return $this->oneResponse($Menu);
-
     }
 
     /**
