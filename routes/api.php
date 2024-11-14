@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\EmployeeStatisticsController;
 use App\Http\Controllers\Api\GuestStatisticsController;
 use App\Http\Controllers\Api\TransitionStatisticsController;
 use App\Http\Controllers\Api\HomeHotelController;
+use App\Http\Controllers\Api\PaymentMethodController;
 
 Route::group([
     'prefix' => 'system',
@@ -315,6 +316,17 @@ Route::group([
             Route::get('get-room-using', [HomeHotelController::class, 'getRoomUsing']);
             Route::get('get-room-using-guest', [HomeHotelController::class, 'getRoomUsingGuest']);
             Route::post('add-guest-room-using', [HomeHotelController::class, 'addGuestRoomUsing']);
+        });
+
+         // Phương thức thanh toán
+         Route::group([
+            'prefix' => 'payment-method'
+        ], function () {
+            Route::get('get-list', [PaymentMethodController::class, 'index']);
+            Route::post('', [PaymentMethodController::class, 'store']);
+            Route::get('', [PaymentMethodController::class, 'show']);
+            Route::put('{uuid}', [PaymentMethodController::class, 'update']);
+            Route::delete('{uuid}', [PaymentMethodController::class, 'destroy']);
         });
     });
 });
