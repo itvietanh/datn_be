@@ -99,9 +99,9 @@ class OrderRoomService extends BaseService
 
     public function handleCalculatorPrice(Request $req)
     {
-        // Lấy thông tin phòng dựa vào UUID
         if (!empty($req->id)) $dataRoom = $this->findFirstRoomById($req->id);
 
+        // Lấy thông tin phòng dựa vào UUID
         if (!empty($req->room_uuid)) $dataRoom = $this->getRoomByUuid($req->room_uuid);
 
         // Kiểm tra phòng có tồn tại không
@@ -144,7 +144,9 @@ class OrderRoomService extends BaseService
                     $timeNow = Carbon::now();
                     if ($timeNow > $checkOut) {
                         $remainingHours = $checkOut->diff($timeNow);
-                        $totalPrice = $totalPrice + ($remainingHours * $roomType->price_per_hour);
+                        // dd($remainingHours);
+                        dd($$roomType->price_per_hour);
+                        $totalPrice = $totalPrice + ($remainingHours * +$roomType->price_per_hour);
                     }
                 } else {
                     // Nếu thời gian >= 24 giờ, tính số ngày và số giờ dư
@@ -381,21 +383,30 @@ class OrderRoomService extends BaseService
         $check_in = $this->convertLongToTimestamp($req->checkIn);
         $check_out = $this->convertLongToTimestamp($req->checkOut);
 
-        // Tìm danh sách phòng khả dụng
-        $availableRooms = $this->getAvailableRoomsQuery($check_in, $check_out)
-            ->select('r.*', 'rt.number_of_people');
+        // Query the available rooms as a Builder instance
+        $availableRoomsQuery = $this->getAvailableRoomsQuery($check_in, $check_out)
+            ->select('r.id as roomId', 'r.room_number as roomNumber', 'r.status', 'fl.floor_number as floorNumber', 'rt.number_of_people as numberOfPeople', 'rt.type_name as roomTypeName', 'rt.price_per_hour as pricePerHour', 'rt.price_per_day as pricerPerDay', 'rt.price_overtime as priceOverTime');
 
-        $totalCapacity = $availableRooms->sum('number_of_people');
+        // Perform pagination on the query builder
+        $paginatedRooms = $this->getListQueryBuilder($req, $availableRoomsQuery);
 
-        return ($totalCapacity >= $req->totalGuests)
-            ? $this->getListQueryBuilder($req, $availableRooms)
-            : null;
+        // Add price data to each paginated room
+        $updatedRooms = $paginatedRooms->getCollection()->map(function ($room) use ($check_in, $check_out) {
+            $priceData = $this->calculateRoomPrice($room->roomId, $check_in, $check_out);
+            return (object) array_merge((array) $room, $priceData);
+        });
+
+        // Replace the collection with the updated rooms including price data
+        $paginatedRooms->setCollection($updatedRooms);
+
+        return $paginatedRooms;
     }
 
     private function getAvailableRoomsQuery($check_in, $check_out)
     {
         return DB::table('room as r')
             ->join('room_type as rt', 'r.room_type_id', '=', 'rt.id')
+            ->join('floor as fl', 'r.floor_id', '=', 'fl.id')
             ->where('r.status', 1)
             ->whereNotExists(function ($query) use ($check_in, $check_out) {
                 $query->select(DB::raw(1))
@@ -406,5 +417,16 @@ class OrderRoomService extends BaseService
                             ->where('b.check_out', '>=', $check_in);
                     });
             });
+    }
+
+    private function calculateRoomPrice($roomId, $checkIn, $checkOut)
+    {
+        $req = new Request([
+            'id' => $roomId,
+            'check_in' => $checkIn,
+            'check_out' => $checkOut
+        ]);
+
+        return $this->handleCalculatorPrice($req);
     }
 }
