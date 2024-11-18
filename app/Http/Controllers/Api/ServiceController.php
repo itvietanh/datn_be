@@ -14,13 +14,15 @@ class ServiceController extends BaseController
      * Display a listing of the resource.
      */
     protected $service;
+
     public function __construct(ServiceService $service)
     {
         $this->service = $service;
     }
+
     public function index(Request $request)
     {
-        $columns = ['uuid', 'service_name','hotel_id', 'service_price', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+        $columns = ['id', 'uuid', 'service_name', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
         $searchParams = (object) $request->only(['service_name', 'service_price']);
 
@@ -31,6 +33,25 @@ class ServiceController extends BaseController
             }
             if (isset($searchParams->service_price)) {
                 $query->where('service_price', '=', $searchParams->service_price);
+            }
+        });
+        return $this->getPaging($data);
+    }
+
+    public function getListService(Request $request)
+    {
+        $this->service->getListServiceInCat();
+
+        $columns = ['id', 'name', 'price', 'created_at', 'updated_at'];
+
+        $searchParams = (object) $request->only(['name', 'id']);
+
+        $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
+            if (isset($searchParams->name)) {
+                $query->where('name', '=', $searchParams->name);
+            }
+            if (isset($searchParams->id)) {
+                $query->where('service_id', '=', $searchParams->id);
             }
         });
         return $this->getPaging($data);
@@ -109,5 +130,4 @@ class ServiceController extends BaseController
         $this->service->delete($service->id);
         return $this->responseSuccess($service);
     }
-    
 }

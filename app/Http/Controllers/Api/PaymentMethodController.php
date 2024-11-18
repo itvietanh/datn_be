@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use App\Services\Api\PaymentMethodService;
 use Illuminate\Support\Str;
 
-class PaymentMethodController extends Controller
+class PaymentMethodController extends BaseController
 {
     protected $paymentMethodService;
 
@@ -36,6 +37,25 @@ class PaymentMethodController extends Controller
         });
 
         return response()->json($data);
+    }
+
+    public function getCombobox(Request $req)
+    {
+        $fillable = ['id as value', 'name as label', 'qr_code as qrCode', 'description as desc'];
+
+        $searchParams = (object) $req->only(['id', 'q']);
+
+        $data = $this->paymentMethodService->getList($req, $fillable, function ($query) use ($searchParams) {
+            if (!empty($searchParams->q)) {
+                $query->where('name', 'like', '%' . $searchParams->q . '%');
+            }
+
+            if (!empty($searchParams->id)) {
+                $query->where('id', '=', $searchParams->id);
+            }
+        });
+
+        return $this->getPaging($data);
     }
 
 
@@ -114,6 +134,4 @@ class PaymentMethodController extends Controller
 
         return response()->json(['message' => 'Phương thức thanh toán đã được xóa thành công']);
     }
-
-
 }
