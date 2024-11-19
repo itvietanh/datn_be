@@ -40,7 +40,6 @@ class HomeHotelService extends BaseService
                 'RT.type_name as typeName',
                 'RT.number_of_people as numberOfPeople',
                 'S.service_name AS serviceName',
-                'S.service_price as servicePrice',
                 'T.uuid as transUuid',
 
             )

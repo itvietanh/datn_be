@@ -198,6 +198,7 @@ Route::group([
             'prefix' => 'service'
         ], function () {
             Route::get('get-list', [ServiceController::class, 'index']);
+            Route::get('get-list-service', [ServiceController::class, 'getListService']);
             Route::get('options', [ServiceController::class, 'getCombobox']);
             Route::post('', [ServiceController::class, 'store']);
             Route::get('', [ServiceController::class, 'show']);
@@ -318,11 +319,12 @@ Route::group([
             Route::post('add-guest-room-using', [HomeHotelController::class, 'addGuestRoomUsing']);
         });
 
-         // Phương thức thanh toán
-         Route::group([
+        // Phương thức thanh toán
+        Route::group([
             'prefix' => 'payment-method'
         ], function () {
             Route::get('get-list', [PaymentMethodController::class, 'index']);
+            Route::get('options', [PaymentMethodController::class, 'getCombobox']);
             Route::post('', [PaymentMethodController::class, 'store']);
             Route::get('', [PaymentMethodController::class, 'show']);
             Route::put('{uuid}', [PaymentMethodController::class, 'update']);
