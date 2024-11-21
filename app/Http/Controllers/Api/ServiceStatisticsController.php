@@ -50,6 +50,6 @@ class ServiceStatisticsController extends BaseController
     public function allStatistics()
     {
         $statistics = $this->statisticsService->getAllStatistics(); // Gọi phương thức lấy tất cả thống kê
-        return response()->json($statistics);
+        return $this->responseSuccess($statistics);
     }
 }
