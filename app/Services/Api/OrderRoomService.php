@@ -383,31 +383,28 @@ class OrderRoomService extends BaseService
         $check_in = $this->convertLongToTimestamp($req->checkIn);
         $check_out = $this->convertLongToTimestamp($req->checkOut);
 
-        // Query the available rooms as a Builder instance
-        $availableRoomsQuery = $this->getAvailableRoomsQuery($check_in, $check_out)
+        $availableRoomsQuery = $this->getAvailableRoomsQuery($check_in, $check_out, $req->totalGuest)
             ->select('r.id as roomId', 'r.room_number as roomNumber', 'r.status', 'fl.floor_number as floorNumber', 'rt.number_of_people as numberOfPeople', 'rt.type_name as roomTypeName', 'rt.price_per_hour as pricePerHour', 'rt.price_per_day as pricerPerDay', 'rt.price_overtime as priceOverTime');
 
-        // Perform pagination on the query builder
         $paginatedRooms = $this->getListQueryBuilder($req, $availableRoomsQuery);
 
-        // Add price data to each paginated room
         $updatedRooms = $paginatedRooms->getCollection()->map(function ($room) use ($check_in, $check_out) {
             $priceData = $this->calculateRoomPrice($room->roomId, $check_in, $check_out);
             return (object) array_merge((array) $room, $priceData);
         });
 
-        // Replace the collection with the updated rooms including price data
         $paginatedRooms->setCollection($updatedRooms);
 
         return $paginatedRooms;
     }
 
-    private function getAvailableRoomsQuery($check_in, $check_out)
+    private function getAvailableRoomsQuery($check_in, $check_out, $totalGuest)
     {
         return DB::table('room as r')
             ->join('room_type as rt', 'r.room_type_id', '=', 'rt.id')
             ->join('floor as fl', 'r.floor_id', '=', 'fl.id')
             ->where('r.status', 1)
+            ->where('rt.number_of_people', $totalGuest)
             ->whereNotExists(function ($query) use ($check_in, $check_out) {
                 $query->select(DB::raw(1))
                     ->from('bookings as b')
@@ -428,5 +425,10 @@ class OrderRoomService extends BaseService
         ]);
 
         return $this->handleCalculatorPrice($req);
+    }
+
+    private function getListRoomUsingService($ruUuid)
+    {
+
     }
 }

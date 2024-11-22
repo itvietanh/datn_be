@@ -223,7 +223,7 @@ Route::group([
             // Route::post('search-rooms', [OrderRoomController::class, 'searchRooms']);
             Route::post('room-change-fee', [OrderRoomController::class, 'handleRoomChange']);
             Route::get('search-rooms', [OrderRoomController::class, 'handleSearchRooms']);
-
+            Route::get('ru-service', [OrderRoomController::class, 'handleGetListRu']);
             /** Import excel list guest */
             Route::group([
                 'prefix' => 'import'
