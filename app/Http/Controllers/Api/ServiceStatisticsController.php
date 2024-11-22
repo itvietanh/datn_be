@@ -5,17 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use Illuminate\Http\Request;
 use App\Services\Api\ServiceService;
-use App\Services\Api\StatisticsService; // Nhập StatisticsService
+use App\Services\Api\StatisticsService;
 
 class ServiceStatisticsController extends BaseController
 {
     protected $service;
-    protected $statisticsService; // Khai báo StatisticsService
+    protected $statisticsService;
 
     public function __construct(ServiceService $service, StatisticsService $statisticsService)
     {
         $this->service = $service;
-        $this->statisticsService = $statisticsService; // Khởi tạo StatisticsService
+        $this->statisticsService = $statisticsService;
     }
 
     // Phương thức để lấy tổng doanh thu
@@ -36,7 +36,6 @@ class ServiceStatisticsController extends BaseController
             'service_usage_count' => $serviceUsageCount
         ];
         return $this->responseSuccess($data);
-        
     }
 
     // Phương thức để lấy doanh thu hàng tháng
@@ -46,10 +45,39 @@ class ServiceStatisticsController extends BaseController
         return response()->json($monthlyRevenue);
     }
 
+    // Phương thức để lấy doanh thu theo ngày
+    public function dailyRevenue(Request $request)
+    {
+        $date = $request->input('date', now()->toDateString()); // Mặc định là ngày hiện tại nếu không truyền
+        $dailyRevenue = $this->statisticsService->getDailyRevenue($date);
+
+        $data = [
+            'date' => $date,
+            'daily_revenue' => $dailyRevenue,
+        ];
+        return $this->responseSuccess($data);
+    }
+
+    // Phương thức để lấy doanh thu theo tuần
+    public function weeklyRevenue(Request $request)
+    {
+        $startDate = $request->input('start_date', now()->startOfWeek()->toDateString());
+        $endDate = $request->input('end_date', now()->endOfWeek()->toDateString());
+
+        $weeklyRevenue = $this->statisticsService->getWeeklyRevenue($startDate, $endDate);
+
+        $data = [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'weekly_revenue' => $weeklyRevenue,
+        ];
+        return $this->responseSuccess($data);
+    }
+
     // Phương thức để lấy tất cả thống kê dịch vụ
     public function allStatistics()
     {
-        $statistics = $this->statisticsService->getAllStatistics(); // Gọi phương thức lấy tất cả thống kê
-        return response()->json($statistics);
+        $statistics = $this->statisticsService->getAllStatistics();
+        return $this->responseSuccess($statistics);
     }
 }

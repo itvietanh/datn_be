@@ -21,22 +21,11 @@ class MenuRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => 'required|string',
-            'hotel_id' => 'required',
-            'password' => 'required',
-            'code' => 'required',
-            'is_show' => 'required'
-        ];
+        return null;
     }
 
     public function messages(): array
     {
-        return [
-            'name.required' => 'Tên danh mục không được để trống',
-            'name.string' => 'Tên danh mục không hợp lệ',
-            'hotel_id.required' => 'Cơ sở không được để trống',
-            'code.required' => 'Không được để trống'
-        ];
+        return null;
     }
 }

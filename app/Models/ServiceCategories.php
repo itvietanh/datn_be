@@ -14,4 +14,8 @@ class ServiceCategories extends Model
     protected $fillable = ['uuid', 'name', 'price', 'service_id', 'created_at', 'updated_at'];
 
     public $timestamps = true;
+    public function service()
+    {
+        return $this->belongsTo(Service::class, 'service_id');
+    }
 }

@@ -82,32 +82,31 @@ class MenuController extends BaseController
      */
     public function show(Request $req)
     {
-        $Menu = $this->service->findFirstByUuid($req->id);
-        if (!$Menu)
-            $this->response404();
+        $Menu = $this->service->findFirstById($req->id);
+        if (!$Menu) {
+            return $this->response404(); // Trả về phản hồi 404 nếu không tìm thấy
+        }
         return $this->oneResponse($Menu);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $req)
     {
-        $Menu = $this->service->findFirstByUuid($req->id);
-        if (!$Menu)
-            $this->response404();
+        $Menu = $this->service->findFirstById($req->id);
+        if (!$Menu) {
+            return $this->response404();
+        }
         $data = $this->service->update($Menu->id, $req->all());
         return $this->responseSuccess($data);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Request $req)
     {
-        $Menu = $this->service->findFirstByUuid($req->id);
-        if (!$Menu) $this->response404();
+        $Menu = $this->service->findFirstById($req->id);
+        if (!$Menu) {
+            return $this->response404();
+        }
         $this->service->delete($Menu->id);
         return $this->responseSuccess($Menu);
     }
+
 }
