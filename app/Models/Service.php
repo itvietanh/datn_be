@@ -18,4 +18,8 @@ class Service extends Model
     {
         return $this->belongsTo(Hotel::class, 'hotel_id');
     }
+    public function categories()
+    {
+        return $this->hasMany(ServiceCategories::class, 'service_id');
+    }
 }

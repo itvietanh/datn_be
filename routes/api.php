@@ -264,11 +264,13 @@ Route::group([
                 Route::get('/total-revenue', [ServiceStatisticsController::class, 'totalRevenue']);
                 Route::get('/service-usage-count', [ServiceStatisticsController::class, 'serviceUsageCount']);
                 Route::get('/monthly-revenue', [ServiceStatisticsController::class, 'monthlyRevenue']);
+                Route::get('/daily-revenue', [ServiceStatisticsController::class, 'dailyRevenue']);
+                Route::get('/weekly-revenue', [ServiceStatisticsController::class, 'weeklyRevenue']);
                 Route::get('/all', [ServiceStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê
             });
 
             /** Thống kê khách hàng */
-            Route::group([
+            Route::group([  
                 'prefix' => 'guest'
             ], function () {
                 Route::get('/total-guests', [GuestStatisticsController::class, 'totalGuests']);
