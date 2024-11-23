@@ -1,16 +1,21 @@
-<?php namespace App\Services\Api;
+<?php
+
+namespace App\Services\Api;
 
 use App\Models\Transition;
 use App\Services\BaseService;
 use Carbon\Carbon;
 
-class TransitionStatisticsService extends BaseService {
-    public function __construct() {
+class TransitionStatisticsService extends BaseService
+{
+    public function __construct()
+    {
         $this->model = new Transition();
     }
 
     // Lấy tất cả thống kê giao dịch
-    public function getAllStatistics() {
+    public function getAllStatistics()
+    {
         $totalTransactions = $this->getTotalTransactions();
         $newTransactionsThisMonth = $this->getNewTransactionsThisMonth();
         $activeTransactions = $this->getActiveTransactions();
@@ -27,43 +32,73 @@ class TransitionStatisticsService extends BaseService {
     }
 
     // Tổng số giao dịch
-    public function getTotalTransactions() {
+    public function getTotalTransactions()
+    {
         return $this->model->count();
     }
 
     // Giao dịch mới trong tháng hiện tại
-    public function getNewTransactionsThisMonth() {
+    public function getNewTransactionsThisMonth()
+    {
         return $this->model->whereMonth('created_at', Carbon::now()->month)
-                           ->whereYear('created_at', Carbon::now()->year)
-                           ->count();
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
     }
 
     // Giao dịch đang hoạt động (theo payment_status = 1)
-    public function getActiveTransactions() {
+    public function getActiveTransactions()
+    {
         return $this->model->where('payment_status', 1)->count();
     }
 
     // Giao dịch không hoạt động (theo payment_status = 0)
-    public function getInactiveTransactions() {
+    public function getInactiveTransactions()
+    {
         return $this->model->where('payment_status', 0)->count();
     }
 
     // Tổng số tiền của tất cả giao dịch
-    public function getTotalAmount() {
+    public function getTotalAmount()
+    {
         return $this->model->sum('total_amout');
     }
     // Lấy giao dịch theo guest_id
-public function getTransactionsByGuest($guest_id) {
-    return $this->model->where('guest_id', $guest_id)->get();
-}
+    public function getTransactionsByGuest($guest_id)
+    {
+        return $this->model->where('guest_id', $guest_id)->get();
+    }
 
-// Lấy giao dịch theo ngày
-public function getTransactionsByDate($date) {
-    return $this->model->whereDate('transition_date', $date)->get();
-}
+    // Lấy giao dịch theo ngày
+    public function getTransactionsByDate($date)
+    {
+        return $this->model->whereDate('transition_date', $date)->get();
+    }
 
-// Tổng số tiền của giao dịch theo ngày
-public function getTotalAmountByDate($date) {
-    return $this->model->whereDate('transition_date', $date)->sum('total_amout'); // Sửa thành 'total_amount' nếu cần
-}
+    // Tổng số tiền của giao dịch theo ngày
+    public function getTotalAmountByDate($date)
+    {
+        return $this->model->whereDate('transition_date', $date)->sum('total_amout'); // Sửa thành 'total_amount' nếu cần
+    }
+
+    /**Mẫu */
+
+    public function renderDataStatisticalTrans($dateFrom, $dateTo)
+    {
+        $totalTrans = $this->getTotalTransactions();
+        $statistical = $this->getTransDate($dateFrom, $dateTo);
+
+        $data = [
+            'items' => [
+                'statistical' => $statistical,
+                'totalTrans' => $totalTrans
+            ]
+        ];
+        return $data;
+    }
+
+    public function getTransDate($dateFrom, $dateTo)
+    {
+        return $this->model->whereBetween('transition_date', [$dateFrom, $dateTo])
+            ->get();
+    }
 }

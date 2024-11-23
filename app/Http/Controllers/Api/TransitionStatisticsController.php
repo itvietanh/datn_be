@@ -23,7 +23,6 @@ class TransitionStatisticsController extends BaseController
             'total_transactions' => $totalTransactions
         ];
         return $this->responseSuccess($data);
-        
     }
 
     // Phương thức để lấy số giao dịch mới trong tháng
@@ -34,7 +33,6 @@ class TransitionStatisticsController extends BaseController
             'new_transactions_this_month' => $newTransactions
         ];
         return $this->responseSuccess($data);
-      
     }
 
     // Phương thức để lấy số giao dịch đang hoạt động
@@ -51,7 +49,7 @@ class TransitionStatisticsController extends BaseController
     public function allStatistics()
     {
         $statistics = $this->transitionStatisticsService->getAllStatistics();
-        
+
         return response()->json($statistics);
     }
 
@@ -82,5 +80,23 @@ class TransitionStatisticsController extends BaseController
             'total_amount' => $totalAmount
         ];
         return $this->responseSuccess($data);
+    }
+
+    /**
+     * Mẫu
+     */
+
+    public function transactionsStatistical(Request $req)
+    {
+        $params = $req->all();
+        dd($params);
+        $dateFrom = $this->transitionStatisticsService->convertLongToTimestamp($params['dateFrom']);
+        $dateTo = $this->transitionStatisticsService->convertLongToTimestamp($params['dateTo']);
+        if ($dateFrom && $dateTo) {
+            $response = $this->transitionStatisticsService->renderDataStatisticalTrans($dateFrom, $dateTo);
+        } else {
+            throw new \InvalidArgumentException('Đầu vào không hợp lệ');
+        }
+        $this->responseSuccess($response);
     }
 }

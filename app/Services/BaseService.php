@@ -161,7 +161,7 @@ class BaseService
         return $fileName;
     }
 
-    protected function convertLongToTimestamp($val)
+    public function convertLongToTimestamp($val)
     {
         if ($val instanceof \DateTime) {
             return $val->format('Y-m-d H:i:s');

@@ -283,6 +283,10 @@ Route::group([
             Route::group([
                 'prefix' => 'transactions'
             ], function () {
+
+                /**Mẫu */
+                Route::get('', [TransitionStatisticsController::class, 'transactionsStatistical']); 
+
                 // Route để lấy tổng số giao dịch
                 Route::get('/total-transactions', [TransitionStatisticsController::class, 'totalTransactions']); // Lấy tổng số giao dịch
                 // Route để lấy số giao dịch mới trong tháng hiện tại
