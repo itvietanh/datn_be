@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Services\Api\TransitionStatisticsService;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\StatisticalExport;
+use Illuminate\Support\Facades\Response;
 
 class TransitionStatisticsController extends BaseController
 {
@@ -23,7 +26,6 @@ class TransitionStatisticsController extends BaseController
             'total_transactions' => $totalTransactions
         ];
         return $this->responseSuccess($data);
-        
     }
 
     // Phương thức để lấy số giao dịch mới trong tháng
@@ -34,7 +36,6 @@ class TransitionStatisticsController extends BaseController
             'new_transactions_this_month' => $newTransactions
         ];
         return $this->responseSuccess($data);
-      
     }
 
     // Phương thức để lấy số giao dịch đang hoạt động
@@ -51,7 +52,7 @@ class TransitionStatisticsController extends BaseController
     public function allStatistics()
     {
         $statistics = $this->transitionStatisticsService->getAllStatistics();
-        
+
         return response()->json($statistics);
     }
 
@@ -82,5 +83,30 @@ class TransitionStatisticsController extends BaseController
             'total_amount' => $totalAmount
         ];
         return $this->responseSuccess($data);
+    }
+
+    /**
+     * Mẫu
+     */
+
+    public function transactionsStatistical(Request $req)
+    {
+        $response = $this->transitionStatisticsService->renderDataStatisticalTrans($req);
+        return $this->responseSuccess($response);
+    }
+
+    public function exportExcelStatistical(Request $req)
+    {
+        $data = $this->transitionStatisticsService->renderDataStatisticalTrans($req);
+        $data['dateFrom'] = \DateTime::createFromFormat('Ymd', $req->dateFrom)->format('d-m-Y');
+        $data['dateTo'] = \DateTime::createFromFormat('Ymd', $req->dateTo)->format('d-m-Y');
+        $export = new StatisticalExport($data);
+
+        $fileContent = $export->template();
+
+        // Trả về file Excel
+        return response($fileContent)
+            ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->header('Content-Disposition', 'attachment; filename="thong-ke-giao-dich.xlsx"');
     }
 }
