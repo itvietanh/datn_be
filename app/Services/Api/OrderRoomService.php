@@ -144,9 +144,10 @@ class OrderRoomService extends BaseService
                     $timeNow = Carbon::now();
                     if ($timeNow > $checkOut) {
                         $remainingHours = $checkOut->diff($timeNow);
-                        // dd($remainingHours);
-                        dd($$roomType->price_per_hour);
-                        $totalPrice = $totalPrice + ($remainingHours * +$roomType->price_per_hour);
+
+                        $remainingHoursAsNumber = $remainingHours->days * 24 + $remainingHours->h + ($remainingHours->i / 60);
+
+                        $totalPrice += $remainingHoursAsNumber * (int) $roomType->price_per_hour;
                     }
                 } else {
                     // Nếu thời gian >= 24 giờ, tính số ngày và số giờ dư
@@ -427,8 +428,5 @@ class OrderRoomService extends BaseService
         return $this->handleCalculatorPrice($req);
     }
 
-    private function getListRoomUsingService($ruUuid)
-    {
-
-    }
+    private function getListRoomUsingService($ruUuid) {}
 }

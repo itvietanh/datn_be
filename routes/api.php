@@ -285,22 +285,10 @@ Route::group([
             Route::group([
                 'prefix' => 'transactions'
             ], function () {
-                // Route để lấy tổng số giao dịch
-                Route::get('/total-transactions', [TransitionStatisticsController::class, 'totalTransactions']); // Lấy tổng số giao dịch
-                // Route để lấy số giao dịch mới trong tháng hiện tại
-                Route::get('/new-transactions-this-month', [TransitionStatisticsController::class, 'newTransactionsThisMonth']); // Lấy số giao dịch mới trong tháng
-                // Route để lấy số giao dịch đang hoạt động (có trạng thái hoàn tất)
-                Route::get('/active-transactions', [TransitionStatisticsController::class, 'activeTransactions']); // Lấy số giao dịch đang hoạt động
-                // Route để lấy số giao dịch không hoạt động (chưa hoàn tất)
-                Route::get('/inactive-transactions', [TransitionStatisticsController::class, 'inactiveTransactions']); // Lấy số giao dịch không hoạt động
-                // Route để lấy số giao dịch theo guest_id
-                Route::get('/transactions-by-guest/{guest_id}', [TransitionStatisticsController::class, 'transactionsByGuest']);
-                // Route để lấy số giao dịch theo ngày
-                Route::get('/transactions-by-date/{date}', [TransitionStatisticsController::class, 'transactionsByDate']);
-                // Route để lấy tổng số tiền giao dịch theo ngày
-                Route::get('/total-amount-by-date/{date}', [TransitionStatisticsController::class, 'totalAmountByDate']);
-                // Route để lấy tất cả thống kê giao dịch
-                Route::get('/all', [TransitionStatisticsController::class, 'allStatistics']); // Lấy tất cả thống kê giao dịch
+
+                /**Mẫu */
+                Route::get('', [TransitionStatisticsController::class, 'transactionsStatistical']);
+                Route::get('export-transactions', [TransitionStatisticsController::class, 'exportExcelStatistical']);
             });
             /** Thống kê nhân viên */
             Route::group([
