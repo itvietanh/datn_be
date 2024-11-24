@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Services\Api\TransitionStatisticsService;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\StatisticalExport;
+use Illuminate\Support\Facades\Response;
 
 class TransitionStatisticsController extends BaseController
 {
@@ -88,15 +91,22 @@ class TransitionStatisticsController extends BaseController
 
     public function transactionsStatistical(Request $req)
     {
-        $params = $req->all();
-        dd($params);
-        $dateFrom = $this->transitionStatisticsService->convertLongToTimestamp($params['dateFrom']);
-        $dateTo = $this->transitionStatisticsService->convertLongToTimestamp($params['dateTo']);
-        if ($dateFrom && $dateTo) {
-            $response = $this->transitionStatisticsService->renderDataStatisticalTrans($dateFrom, $dateTo);
-        } else {
-            throw new \InvalidArgumentException('Đầu vào không hợp lệ');
-        }
-        $this->responseSuccess($response);
+        $response = $this->transitionStatisticsService->renderDataStatisticalTrans($req);
+        return $this->responseSuccess($response);
+    }
+
+    public function exportExcelStatistical(Request $req)
+    {
+        $data = $this->transitionStatisticsService->renderDataStatisticalTrans($req);
+        $data['dateFrom'] = \DateTime::createFromFormat('Ymd', $req->dateFrom)->format('d-m-Y');
+        $data['dateTo'] = \DateTime::createFromFormat('Ymd', $req->dateTo)->format('d-m-Y');
+        $export = new StatisticalExport($data);
+
+        $fileContent = $export->template();
+
+        // Trả về file Excel
+        return response($fileContent)
+            ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->header('Content-Disposition', 'attachment; filename="thong-ke-giao-dich.xlsx"');
     }
 }

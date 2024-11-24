@@ -5,6 +5,7 @@ namespace App\Services\Api;
 use App\Models\Transition;
 use App\Services\BaseService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class TransitionStatisticsService extends BaseService
 {
@@ -82,23 +83,40 @@ class TransitionStatisticsService extends BaseService
 
     /**Mẫu */
 
-    public function renderDataStatisticalTrans($dateFrom, $dateTo)
+    public function renderDataStatisticalTrans($req)
     {
         $totalTrans = $this->getTotalTransactions();
-        $statistical = $this->getTransDate($dateFrom, $dateTo);
-
+        $statistical = $this->getTransDate($req);
         $data = [
-            'items' => [
-                'statistical' => $statistical,
-                'totalTrans' => $totalTrans
-            ]
+            'statistical' => $statistical,
+            'totalTrans' => $totalTrans
         ];
         return $data;
     }
 
-    public function getTransDate($dateFrom, $dateTo)
+    public function getTransDate($req)
     {
-        return $this->model->whereBetween('transition_date', [$dateFrom, $dateTo])
-            ->get();
+        $params = $req->all();
+        $dateFrom = \DateTime::createFromFormat('Ymd', $params['dateFrom'])->format('Y-m-d');
+        $dateTo = \DateTime::createFromFormat('Ymd', $params['dateTo'])->format('Y-m-d');
+        $query = DB::table('transition')
+            ->select(
+                'guest.name as fullName',
+                'guest.phone_number as phoneNumber',
+                'guest.id_number as idNumber',
+                'hotel.province_code as provinceCode',
+                'hotel.district_code as districtCode',
+                'hotel.name as hotelName',
+                DB::raw("concat('Phòng ', room.room_number) as roomNumber"),
+                'transition.transition_date as transitionDate',
+                'room_using.total_amount as totalAmount'
+            )
+            ->join('guest', 'guest.id', '=', 'transition.guest_id')
+            ->join('room_using', 'room_using.trans_id', '=', 'transition.id')
+            ->leftJoin('room', 'room.id', '=', 'room_using.room_id')
+            ->join('hotel', 'hotel.id', '=', 'room.hotel_id')
+            ->whereBetween(DB::raw("transition.transition_date::date"), [$dateFrom, $dateTo]);
+        $data = $query->get();
+        return $data;
     }
 }

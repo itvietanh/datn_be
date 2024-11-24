@@ -172,8 +172,6 @@ class BaseService
         }
 
         $dateTimestamp = \DateTime::createFromFormat('YmdHis', $val);
-
         return $dateTimestamp ? $dateTimestamp->format('Y-m-d H:i:s') : null;
     }
-    
 }
