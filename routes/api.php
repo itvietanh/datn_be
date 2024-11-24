@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\EmployeeStatisticsController;
 use App\Http\Controllers\Api\GuestStatisticsController;
 use App\Http\Controllers\Api\TransitionStatisticsController;
 use App\Http\Controllers\Api\HomeHotelController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentMethodController;
 
 Route::group([
@@ -270,7 +271,7 @@ Route::group([
             });
 
             /** Thống kê khách hàng */
-            Route::group([  
+            Route::group([
                 'prefix' => 'guest'
             ], function () {
                 Route::get('/total-guests', [GuestStatisticsController::class, 'totalGuests']);
@@ -332,5 +333,20 @@ Route::group([
             Route::put('{uuid}', [PaymentMethodController::class, 'update']);
             Route::delete('{uuid}', [PaymentMethodController::class, 'destroy']);
         });
+
+       // Thanh toán MoMo
+            Route::group([
+                'prefix' => 'payment-momo'
+            ], function () {
+                // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
+                // Gửi yêu cầu thanh toán tới MoMo
+                Route::post('', [PaymentController::class, 'createPayment']);
+                Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
+                // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
+                Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
+
+            });
+
+
+        });
     });
-});

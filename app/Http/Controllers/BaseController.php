@@ -13,11 +13,11 @@ class BaseController extends Controller
 
     /**
      * Hàm xử lý phân trang cho danh sách.
-     * 
+     *
      * @param Model $model Model được truyền vào
      * @param Request $request Yêu cầu HTTP
      * @param array $columns Danh sách các cột cần select
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getPaging($data)
@@ -41,11 +41,11 @@ class BaseController extends Controller
 
     /**
      * Hàm lấy một kết quả từ model.
-     * 
+     *
      * @param Model $model Model được truyền vào
      * @param int|string $id ID của item cần lấy
      * @param array $columns Danh sách các cột cần select
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function oneResponse($data)
@@ -76,4 +76,13 @@ class BaseController extends Controller
             'message' => 'Không tìm thấy'
         ], 404);
     }
+
+    public function responseError($message = "", $code = null)
+    {
+        return response()->json([
+            'code' => 'NOT_FOUND',
+            'message' => $message ? $message : "Lỗi hệ thông"
+        ], $code ? $code : 500);
+    }
+
 }
