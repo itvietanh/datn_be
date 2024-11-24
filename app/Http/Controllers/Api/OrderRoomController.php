@@ -72,6 +72,6 @@ class OrderRoomController extends BaseController
     }
 
     public function handleGetListRu(Request $req) {
-        
+
     }
 }

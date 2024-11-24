@@ -290,7 +290,7 @@ class OrderRoomService extends BaseService
             /** Tạo bản ghi mới room using */
             $ruNew = $this->createRoomUsingNew($req);
 
-            // Cập nhật lại checkIn | checkOut 
+            // Cập nhật lại checkIn | checkOut
             $this->updateRUGuest($req, $ruNew->id);
 
             /** Update trạng thái đang ở cho phòng mới */

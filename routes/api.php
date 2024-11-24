@@ -76,6 +76,7 @@ Route::group([
             Route::get('', [RoomController::class, 'show']);
             Route::put('', [RoomController::class, 'update']);
             Route::delete('', [RoomController::class, 'destroy']);
+            Route::put('{uuid}', [RoomController::class, 'updateRoomStatus']);
         });
 
         // Kiểu phòng
@@ -167,6 +168,7 @@ Route::group([
             Route::get('', [RoomUsingController::class, 'show']);
             Route::put('', [RoomUsingController::class, 'update']);
             Route::delete('', [RoomUsingController::class, 'destroy']);
+            Route::put('/room-using/payment/{uuid}', [RoomUsingController::class, 'updateRoomUsingPayment']);
         });
 
         // Phòng sử dụng dịch vụ (Lmaf service trước mới đúng cchuws)
@@ -270,7 +272,7 @@ Route::group([
             });
 
             /** Thống kê khách hàng */
-            Route::group([  
+            Route::group([
                 'prefix' => 'guest'
             ], function () {
                 Route::get('/total-guests', [GuestStatisticsController::class, 'totalGuests']);
