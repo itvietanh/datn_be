@@ -289,6 +289,8 @@ Route::group([
 
                 /**Mẫu */
                 Route::get('', [TransitionStatisticsController::class, 'transactionsStatistical']);
+                // Route::get('room-using-total', [TransitionStatisticsController::class, 'getRoomUsingTotalByDate']);
+                Route::get('by-date', [TransitionStatisticsController::class, 'getTransactionsByDate']);
                 Route::get('export-transactions', [TransitionStatisticsController::class, 'exportExcelStatistical']);
             });
             /** Thống kê nhân viên */
