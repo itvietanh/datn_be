@@ -295,14 +295,11 @@ Route::group([
             });
             /** Thống kê nhân viên */
             Route::group([
-                'prefix' => 'employee'
+                'prefix' => 'employees'
             ], function () {
-                Route::get('/total-employees', [EmployeeStatisticsController::class, 'totalEmployees']);
-                Route::get('/new-employees-this-month', [EmployeeStatisticsController::class, 'newEmployeesThisMonth']);
-                Route::get('/active-employees', [EmployeeStatisticsController::class, 'activeEmployees']);
-                Route::get('/by-hotel/{hotelId}', [EmployeeStatisticsController::class, 'employeesByHotel']);
-                Route::get('/details', [EmployeeStatisticsController::class, 'employeeDetails']);
-                Route::get('/all', [EmployeeStatisticsController::class, 'allStatistics']);
+                Route::get('', [EmployeeStatisticsController::class, 'employeesStatistical']);
+                Route::get('by-date', [EmployeeStatisticsController::class, 'getEmployeesByDate']);
+                Route::get('export-transactions', [EmployeeStatisticsController::class, 'exportExcelStatistical']);
             });
         });
 

@@ -3,45 +3,93 @@
 namespace App\Services\Api;
 
 use App\Models\Employee;
+use App\Services\BaseService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
-class EmployeeStatisticsService
+class EmployeeStatisticsService extends BaseService
 {
-    public function getTotalEmployees()
+    public function __construct()
     {
-        return Employee::count();
+        $this->model = new Employee();
     }
 
-    public function getNewEmployeesThisMonth()
-    {
-        return Employee::whereMonth('created_at', Carbon::now()->month)
-                       ->whereYear('created_at', Carbon::now()->year)
-                       ->count();
-    }
-
-    public function getActiveEmployees()
-    {
-        // Bỏ qua cột status, có thể trả về tổng số nhân viên
-        return Employee::count(); // Hoặc có thể thay đổi theo nhu cầu
-    }
-
-    public function getEmployeesByHotel($hotelId)
-    {
-        return Employee::where('hotel_id', $hotelId)->count();
-    }
-
-    public function getEmployeeDetails()
-    {
-        return Employee::select('uuid', 'name', 'email', 'phone', 'address', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by')
-                       ->get();
-    }
-
+    // Lấy tất cả thống kê nhân viên
     public function getAllStatistics()
     {
+        $totalEmployees = $this->getTotalEmployees();
+        $newEmployeesThisMonth = $this->getNewEmployeesThisMonth();
+        $activeEmployees = $this->getActiveEmployees();
+        $inactiveEmployees = $this->getInactiveEmployees();
+
         return [
-            'total_employees' => $this->getTotalEmployees(),
-            'new_employees_this_month' => $this->getNewEmployeesThisMonth(),
-            'active_employees' => $this->getActiveEmployees(),
+            'total_employees' => $totalEmployees,
+            'new_employees_this_month' => $newEmployeesThisMonth,
+            'active_employees' => $activeEmployees,
+            'inactive_employees' => $inactiveEmployees,
         ];
+    }
+
+    // Tổng số nhân viên
+    public function getTotalEmployees()
+    {
+        return $this->model->count();
+    }
+
+    // Nhân viên mới trong tháng hiện tại
+    public function getNewEmployeesThisMonth()
+    {
+        return $this->model->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
+    }
+
+    // Nhân viên đang hoạt động (giả sử trạng thái hoạt động dựa trên trường `status = 1`)
+    public function getActiveEmployees()
+    {
+        return $this->model->where('status', 1)->count();
+    }
+
+    // Nhân viên không hoạt động (giả sử trạng thái không hoạt động là `status = 0`)
+    public function getInactiveEmployees()
+    {
+        return $this->model->where('payment_status', 0)->count();
+    }
+
+    // Lấy nhân viên theo phòng ban (nếu có)
+    public function getEmployeesByDepartment($departmentId)
+    {
+        return $this->model->where('department_id', $departmentId)->get();
+    }
+
+    // Lấy danh sách nhân viên theo ngày gia nhập
+    public function getEmployeesByDate($date)
+    {
+        return $this->model->whereDate('created_at', $date)->get();
+    }
+
+    // Thống kê theo khoảng thời gian
+    public function renderDataStatisticalEmployees($req)
+    {
+        $totalEmployees = $this->getTotalEmployees();
+        $employees = $this->getEmployeesByDateRange($req);
+        $data = [
+            'employees' => $employees,
+            'total_employees' => $totalEmployees,
+        ];
+        return $data;
+    }
+
+    // Lấy danh sách nhân viên theo khoảng thời gian
+    public function getEmployeesByDateRange($req)
+    {
+        $params = $req->all();
+        $dateFrom = \DateTime::createFromFormat('Ymd', $params['dateFrom'])->format('Y-m-d');
+        $dateTo = \DateTime::createFromFormat('Ymd', $params['dateTo'])->format('Y-m-d');
+
+        return $this->model
+            ->whereBetween(DB::raw("DATE(created_at)"), [$dateFrom, $dateTo])
+            ->select('name', 'email', 'phone', 'created_at', 'status')
+            ->get();
     }
 }
