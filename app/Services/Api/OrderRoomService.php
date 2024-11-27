@@ -16,7 +16,9 @@ use App\Models\RoomUsing;
 use App\Models\RoomUsingGuest;
 use App\Models\RoomUsingService;
 use App\Models\Room;
+use App\Models\Service;
 use Carbon\Carbon;
+use App\Models\ServiceCategories;
 
 
 // Enum
@@ -66,15 +68,19 @@ class OrderRoomService extends BaseService
 
         if (!empty($req->roomUsingGuest)) {
             $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
-            $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
+            $checkOut = null;
+            if ($req->roomUsingGuest['check_out']) {
+                $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
+            }
             $roomUsingGuest = $req->roomUsingGuest;
-            // dd($guestId);
             foreach ($guestId as $value) {
                 $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
                 $roomUsingGuest['guest_id'] = $value->id;
                 $roomUsingGuest['room_using_id'] = $roomUsingId->id;
                 $roomUsingGuest['check_in'] = $checkIn;
-                $roomUsingGuest['check_out'] = $checkOut;
+                if ($checkOut) {
+                    $roomUsingGuest['check_out'] = $checkOut;
+                }
                 $this->model = new RoomUsingGuest();
                 $this->create($roomUsingGuest);
             }
@@ -122,13 +128,17 @@ class OrderRoomService extends BaseService
         }
 
         // Kiểm tra thời gian giữa check-in và check-out
-        if ($req->check_in && $req->check_out) {
+        if ($req->check_in) {
             if (strlen($req->check_in) == 14) {
                 $checkIn = \DateTime::createFromFormat('YmdHis', $req->check_in);
-                $checkOut = \DateTime::createFromFormat('YmdHis', $req->check_out);
+                $checkOut = $req->check_out
+                    ? \DateTime::createFromFormat('YmdHis', $req->check_out)
+                    : new \DateTime();
             } else {
                 $checkIn = new \DateTime($req->check_in);
-                $checkOut = new \DateTime($req->check_out);
+                $checkOut = $req->check_out
+                    ? new \DateTime($req->check_out)
+                    : new \DateTime();
             }
 
             if ($checkIn && $checkOut) {
@@ -455,5 +465,10 @@ class OrderRoomService extends BaseService
         return $this->handleCalculatorPrice($req);
     }
 
-    private function getListRoomUsingService($ruUuid) {}
+    public function getListRoomUsingService($ruUuid)
+    {
+        $this->model = new RoomUsing();
+        $data = $this->findFirstByUuid($ruUuid);
+        return $data;
+    }
 }

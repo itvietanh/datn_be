@@ -71,7 +71,23 @@ class OrderRoomController extends BaseController
         }
     }
 
-    public function handleGetListRu(Request $req) {
+    public function handleGetListRu(Request $req)
+    {
+        $data = $this->service->getListRoomUsingService($req->ruUuid);
+        $ruId = $data['id'];
+        $query = DB::table('room_using_service as rus')
+            ->select(
+                's.service_name as serviceName',
+                's.price',
+                'sc.name as catName'
+            )
+            ->join('service as s', 's.id', '=', 'rus.service_id')
+            ->join('service_categories as sc', 'sc.id', '=', 's.service_categories_id');
 
+        if ($ruId) {
+            $query->where('rus.room_using_id', $ruId);
+        }
+        $response = $this->service->getListQueryBuilder($req, $query);
+        return $this->getPaging($response);
     }
 }

@@ -323,19 +323,17 @@ Route::group([
             Route::delete('{uuid}', [PaymentMethodController::class, 'destroy']);
         });
 
-       // Thanh toán MoMo
-            Route::group([
-                'prefix' => 'payment-momo'
-            ], function () {
-                // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
-                // Gửi yêu cầu thanh toán tới MoMo
-                Route::post('', [PaymentController::class, 'createPayment']);
-                Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
-                // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
-                Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
-
-            });
-
+        // Thanh toán MoMo
+        Route::group([
+            'prefix' => 'payment-momo'
+        ], function () {
+            // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
+            // Gửi yêu cầu thanh toán tới MoMo
+            Route::post('', [PaymentController::class, 'createPayment']);
+            Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
+            // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
+            Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
 
         });
     });
+});
