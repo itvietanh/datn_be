@@ -384,14 +384,30 @@ class OrderRoomService extends BaseService
         $check_in = $this->convertLongToTimestamp($req->checkIn);
         $check_out = $this->convertLongToTimestamp($req->checkOut);
 
-        $availableRoomsQuery = $this->getAvailableRoomsQuery($check_in, $check_out, $req->totalGuest)
-            ->select('r.id as roomId', 'r.room_number as roomNumber', 'r.status', 'fl.floor_number as floorNumber', 'rt.number_of_people as numberOfPeople', 'rt.type_name as roomTypeName', 'rt.price_per_hour as pricePerHour', 'rt.price_per_day as pricerPerDay', 'rt.price_overtime as priceOverTime');
+        $availableRoomsQuery = $this->getAvailableRoomsQuery($check_in, $check_out, $req->totalGuest);
 
         $paginatedRooms = $this->getListQueryBuilder($req, $availableRoomsQuery);
 
-        $updatedRooms = $paginatedRooms->getCollection()->map(function ($room) use ($check_in, $check_out) {
-            $priceData = $this->calculateRoomPrice($room->roomId, $check_in, $check_out);
-            return (object) array_merge((array) $room, $priceData);
+        $roomIds = $paginatedRooms->getCollection()->pluck('roomid')->toArray();
+
+        $roomIdsArray = [];
+
+        foreach ($roomIds as $value) {
+            $values = explode(',', trim($value, '{}'));
+
+            foreach ($values as $roomId) {
+                $roomIdsArray[] = (int) $roomId;
+            }
+        }
+
+        $updatedRooms = $paginatedRooms->getCollection()->map(function ($room) use ($check_in, $check_out, $roomIdsArray) {
+            if (is_array($roomIdsArray)) {
+                foreach ($roomIdsArray as $value) {
+                    $priceData = $this->calculateRoomPrice($value, $check_in, $check_out);
+                }
+                return (object) array_merge((array) $room, $priceData);
+            }
+            return $room;
         });
 
         $paginatedRooms->setCollection($updatedRooms);
@@ -399,13 +415,21 @@ class OrderRoomService extends BaseService
         return $paginatedRooms;
     }
 
+
     private function getAvailableRoomsQuery($check_in, $check_out, $totalGuest)
     {
         return DB::table('room as r')
             ->join('room_type as rt', 'r.room_type_id', '=', 'rt.id')
-            ->join('floor as fl', 'r.floor_id', '=', 'fl.id')
-            ->where('r.status', 1)
-            ->where('rt.number_of_people', $totalGuest)
+            ->selectRaw('
+            rt.type_name as roomTypeName,
+            rt.price_per_hour as pricePerHour,
+            rt.price_per_day as pricePerDay,
+            rt.price_overtime as priceOverTime,
+            ARRAY_AGG(r.id) AS roomId,
+            count(case when r.status = 1 then 1 end) as phongTrong,
+            count(case when r.status = 2 then 1 end) as dangO,
+            sum(case when r.status = 1 then rt.number_of_people else 0 end) as soKhachCoTheO
+        ')
             ->whereNotExists(function ($query) use ($check_in, $check_out) {
                 $query->select(DB::raw(1))
                     ->from('bookings as b')
@@ -414,8 +438,11 @@ class OrderRoomService extends BaseService
                         $query->where('b.check_in', '<=', $check_out)
                             ->where('b.check_out', '>=', $check_in);
                     });
-            });
+            })
+            ->groupBy('rt.type_name', 'rt.price_per_hour', 'rt.price_per_day', 'rt.price_overtime', 'rt.number_of_people')
+            ->havingRaw('SUM(CASE WHEN r.status = 1 THEN rt.number_of_people ELSE 0 END) >= ?', [$totalGuest]);
     }
+
 
     private function calculateRoomPrice($roomId, $checkIn, $checkOut)
     {
