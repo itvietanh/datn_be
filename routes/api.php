@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\TransitionStatisticsController;
 use App\Http\Controllers\Api\HomeHotelController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentMethodController;
+use App\Http\Controllers\Api\RoomtypeStatisticsController;
 
 Route::group([
     'prefix' => 'system',
@@ -300,6 +301,14 @@ Route::group([
                 Route::get('', [EmployeeStatisticsController::class, 'employeesStatistical']);
                 Route::get('by-date', [EmployeeStatisticsController::class, 'getEmployeesByDate']);
                 Route::get('export-transactions', [EmployeeStatisticsController::class, 'exportExcelStatistical']);
+            });
+            /** Thống kê loại phòng */
+            Route::group([
+                'prefix' => 'roomtype'
+            ], function () {
+                Route::get('', [RoomtypeStatisticsController::class, 'roomtypeStatistical']);
+                Route::get('total-roomtype', [RoomtypeStatisticsController::class, 'getTotalRoomsByHotel']);
+                Route::get('export-roomtype', [RoomtypeStatisticsController::class, 'exportRoomTypeData']);
             });
         });
 
