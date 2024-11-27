@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\Models\Room;
 use App\RoomStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -100,5 +101,17 @@ class RoomController extends BaseController
         if (!$room) $this->response404();
         $this->service->delete($room->id);
         return $this->responseSuccess($room);
+    }
+    public function updateRoomStatus(Request $request, $roomUuid)
+    {
+        $room = Room::where('uuid', $roomUuid)->first();
+        if ($room) {
+            $room->status = 1; // Cập nhật trạng thái thành "1" (phòng chống)
+            $room->save();
+
+            return response()->json(['message' => 'Room status updated successfully.'], 200);
+        }
+
+        return response()->json(['message' => 'Room not found.'], 404);
     }
 }

@@ -58,7 +58,7 @@ class EmployeeController extends BaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $req, string $id)
+    public function update(Request $req)
     {
         $datareq = $req->all();
         $employee = $this->service->findFIrstByUuid($req->uuid);
@@ -67,6 +67,7 @@ class EmployeeController extends BaseController
         return $this-> responseSuccess($data);
 
     }
+
 
     public function destroy(Request $req)
     {

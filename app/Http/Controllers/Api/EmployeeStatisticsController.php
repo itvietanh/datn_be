@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Services\Api\EmployeeStatisticsService;
+use App\Exports\StatisticalExport;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class EmployeeStatisticsController extends BaseController
 {
@@ -15,86 +19,61 @@ class EmployeeStatisticsController extends BaseController
         $this->employeeStatisticsService = $employeeStatisticsService;
     }
 
-    // trả về tổng số nhân viên
-    public function totalEmployees()
+    /**
+     * Lấy danh sách nhân viên theo khoảng ngày
+     */
+    public function getEmployeesByDate(Request $request)
     {
-        $totalEmployees = $this->employeeStatisticsService->getTotalEmployees();
+        try {
+            $start_date = $request->input('dateFrom');
+            $end_date = $request->input('dateTo');
 
-        // Kiểm tra nếu không có nhân viên nào
-        if ($totalEmployees === 0) {
-            return $this->responseNotFound('No employees found.');
+            $employees = DB::table('employee')
+                ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as total_employees'))
+                ->whereBetween('created_at', [$start_date, $end_date])
+                ->groupBy('date')
+                ->orderBy('date', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $employees
+            ]);
+        } catch (\Exception $e) {
+            // Log lỗi nếu có vấn đề trong quá trình truy vấn
+            // \Log::error('Error fetching employee data: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching data.'
+            ], 500);
         }
-
-        return $this->responseSuccess(['total_employees' => $totalEmployees]);
     }
 
-    // trả về số lượng nhân viên mới được thêm vào trong tháng hiện tại
-    public function newEmployeesThisMonth()
+    /**
+     * Thống kê nhân viên
+     */
+    public function employeesStatistical(Request $req)
     {
-        $newEmployees = $this->employeeStatisticsService->getNewEmployeesThisMonth();
-
-        // Kiểm tra nếu không có nhân viên mới nào
-        if ($newEmployees === 0) {
-            return $this->responseNotFound('No new employees found this month.');
-        }
-
-        return $this->responseSuccess(['new_employees_this_month' => $newEmployees]);
+        $response = $this->employeeStatisticsService->renderDataStatisticalEmployees($req);
+        return $this->responseSuccess($response);
     }
 
-    //trả về số lượng nhân viên đang hoạt động
-    public function activeEmployees()
+    /**
+     * Xuất thống kê nhân viên ra file Excel
+     */
+    public function exportExcelStatistical(Request $req)
     {
-        $activeEmployees = $this->employeeStatisticsService->getActiveEmployees();
+        $data = $this->employeeStatisticsService->renderDataStatisticalEmployees($req);
+        $data['dateFrom'] = \DateTime::createFromFormat('Ymd', $req->dateFrom)->format('d-m-Y');
+        $data['dateTo'] = \DateTime::createFromFormat('Ymd', $req->dateTo)->format('d-m-Y');
+        $export = new StatisticalExport($data);
 
-        // Kiểm tra nếu không có nhân viên hoạt động nào
-        if ($activeEmployees === 0) {
-            return $this->responseNotFound('No active employees found.');
-        }
+        $fileContent = $export->template();
 
-        return $this->responseSuccess(['active_employees' => $activeEmployees]);
-    }
-
-    // trả về số lượng nhân viên theo ID khách sạn được chỉ định
-    public function employeesByHotel($hotelId)
-    {
-        $employeesCount = $this->employeeStatisticsService->getEmployeesByHotel($hotelId);
-
-        // Kiểm tra nếu không có nhân viên nào cho khách sạn này
-        if ($employeesCount === 0) {
-            return $this->responseNotFound('No employees found for the specified hotel.');
-        }
-
-        return $this->responseSuccess(['employees_count_by_hotel' => $employeesCount]);
-    }
-
-    // trả về thông tin chi tiết về nhân viên
-    public function employeeDetails()
-    {
-        $details = $this->employeeStatisticsService->getEmployeeDetails();
-
-        // Kiểm tra nếu không có chi tiết nhân viên nào
-        if (empty($details)) {
-            return $this->responseNotFound('No employee details found.');
-        }
-
-        return $this->responseSuccess($details);
-    }
-
-    // trả về tất cả các thống kê liên quan đến nhân viên
-    public function allStatistics()
-    {
-        $statistics = $this->employeeStatisticsService->getAllStatistics();
-
-        // Kiểm tra nếu không có thống kê nào
-        if (empty($statistics)) {
-            return $this->responseNotFound('No statistics found.');
-        }
-        
-        return $this->responseSuccess($statistics);
-    }
-
-    protected function responseNotFound($message)
-    {
-        return response()->json(['error' => $message], 404);
+        // Trả về file Excel
+        return response($fileContent)
+            ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->header('Content-Disposition', 'attachment; filename="thong-ke-nhan-vien.xlsx"');
     }
 }

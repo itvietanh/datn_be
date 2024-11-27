@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\EmployeeStatisticsController;
 use App\Http\Controllers\Api\GuestStatisticsController;
 use App\Http\Controllers\Api\TransitionStatisticsController;
 use App\Http\Controllers\Api\HomeHotelController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentMethodController;
 
 Route::group([
@@ -76,6 +77,7 @@ Route::group([
             Route::get('', [RoomController::class, 'show']);
             Route::put('', [RoomController::class, 'update']);
             Route::delete('', [RoomController::class, 'destroy']);
+            Route::put('{uuid}', [RoomController::class, 'updateRoomStatus']);
         });
 
         // Kiểu phòng
@@ -167,6 +169,7 @@ Route::group([
             Route::get('', [RoomUsingController::class, 'show']);
             Route::put('', [RoomUsingController::class, 'update']);
             Route::delete('', [RoomUsingController::class, 'destroy']);
+            Route::put('/room-using/payment/{uuid}', [RoomUsingController::class, 'updateRoomUsingPayment']);
         });
 
         // Phòng sử dụng dịch vụ (Lmaf service trước mới đúng cchuws)
@@ -286,18 +289,17 @@ Route::group([
 
                 /**Mẫu */
                 Route::get('', [TransitionStatisticsController::class, 'transactionsStatistical']);
+                // Route::get('room-using-total', [TransitionStatisticsController::class, 'getRoomUsingTotalByDate']);
+                Route::get('by-date', [TransitionStatisticsController::class, 'getTransactionsByDate']);
                 Route::get('export-transactions', [TransitionStatisticsController::class, 'exportExcelStatistical']);
             });
             /** Thống kê nhân viên */
             Route::group([
-                'prefix' => 'employee'
+                'prefix' => 'employees'
             ], function () {
-                Route::get('/total-employees', [EmployeeStatisticsController::class, 'totalEmployees']);
-                Route::get('/new-employees-this-month', [EmployeeStatisticsController::class, 'newEmployeesThisMonth']);
-                Route::get('/active-employees', [EmployeeStatisticsController::class, 'activeEmployees']);
-                Route::get('/by-hotel/{hotelId}', [EmployeeStatisticsController::class, 'employeesByHotel']);
-                Route::get('/details', [EmployeeStatisticsController::class, 'employeeDetails']);
-                Route::get('/all', [EmployeeStatisticsController::class, 'allStatistics']);
+                Route::get('', [EmployeeStatisticsController::class, 'employeesStatistical']);
+                Route::get('by-date', [EmployeeStatisticsController::class, 'getEmployeesByDate']);
+                Route::get('export-transactions', [EmployeeStatisticsController::class, 'exportExcelStatistical']);
             });
         });
 
@@ -320,5 +322,20 @@ Route::group([
             Route::put('{uuid}', [PaymentMethodController::class, 'update']);
             Route::delete('{uuid}', [PaymentMethodController::class, 'destroy']);
         });
+
+       // Thanh toán MoMo
+            Route::group([
+                'prefix' => 'payment-momo'
+            ], function () {
+                // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
+                // Gửi yêu cầu thanh toán tới MoMo
+                Route::post('', [PaymentController::class, 'createPayment']);
+                Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
+                // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
+                Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
+
+            });
+
+
+        });
     });
-});

@@ -19,7 +19,7 @@ class RoomUsingController extends BaseController
     /**
      * Display a listing of the resource.
      */
- 
+
 
     public function index(Request $req)
     {
@@ -88,6 +88,23 @@ class RoomUsingController extends BaseController
         return $this->responseSuccess($roomUsing->uuid);
     }
 
+    public function updateRoomUsingPayment(Request $request, $uuid)
+    {
+        $roomUsing = RoomUsing::where('uuid', $uuid)->first();
+
+        if ($roomUsing) {
+            // Cập nhật thông tin thanh toán
+            $roomUsing->room_change_fee = $request->input('room_change_fee', $roomUsing->room_change_fee);
+            $roomUsing->total_amount = $request->input('total_amount', $roomUsing->total_amount);
+            $roomUsing->prepaid = $request->input('prepaid', $roomUsing->prepaid);
+            $roomUsing->updated_at = now();
+            $roomUsing->save();
+
+            return response()->json(['message' => 'Payment details updated successfully.'], 200);
+        }
+
+        return response()->json(['message' => 'Room using record not found.'], 404);
+    }
 
 
 }
