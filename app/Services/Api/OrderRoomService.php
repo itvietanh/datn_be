@@ -16,7 +16,9 @@ use App\Models\RoomUsing;
 use App\Models\RoomUsingGuest;
 use App\Models\RoomUsingService;
 use App\Models\Room;
+use App\Models\Service;
 use Carbon\Carbon;
+use App\Models\ServiceCategories;
 
 
 // Enum
@@ -66,15 +68,19 @@ class OrderRoomService extends BaseService
 
         if (!empty($req->roomUsingGuest)) {
             $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
-            $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
+            $checkOut = null;
+            if ($req->roomUsingGuest['check_out']) {
+                $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
+            }
             $roomUsingGuest = $req->roomUsingGuest;
-            // dd($guestId);
             foreach ($guestId as $value) {
                 $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
                 $roomUsingGuest['guest_id'] = $value->id;
                 $roomUsingGuest['room_using_id'] = $roomUsingId->id;
                 $roomUsingGuest['check_in'] = $checkIn;
-                $roomUsingGuest['check_out'] = $checkOut;
+                if ($checkOut) {
+                    $roomUsingGuest['check_out'] = $checkOut;
+                }
                 $this->model = new RoomUsingGuest();
                 $this->create($roomUsingGuest);
             }
@@ -122,13 +128,17 @@ class OrderRoomService extends BaseService
         }
 
         // Kiểm tra thời gian giữa check-in và check-out
-        if ($req->check_in && $req->check_out) {
+        if ($req->check_in) {
             if (strlen($req->check_in) == 14) {
                 $checkIn = \DateTime::createFromFormat('YmdHis', $req->check_in);
-                $checkOut = \DateTime::createFromFormat('YmdHis', $req->check_out);
+                $checkOut = $req->check_out
+                    ? \DateTime::createFromFormat('YmdHis', $req->check_out)
+                    : new \DateTime();
             } else {
                 $checkIn = new \DateTime($req->check_in);
-                $checkOut = new \DateTime($req->check_out);
+                $checkOut = $req->check_out
+                    ? new \DateTime($req->check_out)
+                    : new \DateTime();
             }
 
             if ($checkIn && $checkOut) {
@@ -384,14 +394,30 @@ class OrderRoomService extends BaseService
         $check_in = $this->convertLongToTimestamp($req->checkIn);
         $check_out = $this->convertLongToTimestamp($req->checkOut);
 
-        $availableRoomsQuery = $this->getAvailableRoomsQuery($check_in, $check_out, $req->totalGuest)
-            ->select('r.id as roomId', 'r.room_number as roomNumber', 'r.status', 'fl.floor_number as floorNumber', 'rt.number_of_people as numberOfPeople', 'rt.type_name as roomTypeName', 'rt.price_per_hour as pricePerHour', 'rt.price_per_day as pricerPerDay', 'rt.price_overtime as priceOverTime');
+        $availableRoomsQuery = $this->getAvailableRoomsQuery($check_in, $check_out, $req->totalGuest);
 
         $paginatedRooms = $this->getListQueryBuilder($req, $availableRoomsQuery);
 
-        $updatedRooms = $paginatedRooms->getCollection()->map(function ($room) use ($check_in, $check_out) {
-            $priceData = $this->calculateRoomPrice($room->roomId, $check_in, $check_out);
-            return (object) array_merge((array) $room, $priceData);
+        $roomIds = $paginatedRooms->getCollection()->pluck('roomid')->toArray();
+
+        $roomIdsArray = [];
+
+        foreach ($roomIds as $value) {
+            $values = explode(',', trim($value, '{}'));
+
+            foreach ($values as $roomId) {
+                $roomIdsArray[] = (int) $roomId;
+            }
+        }
+
+        $updatedRooms = $paginatedRooms->getCollection()->map(function ($room) use ($check_in, $check_out, $roomIdsArray) {
+            if (is_array($roomIdsArray)) {
+                foreach ($roomIdsArray as $value) {
+                    $priceData = $this->calculateRoomPrice($value, $check_in, $check_out);
+                }
+                return (object) array_merge((array) $room, $priceData);
+            }
+            return $room;
         });
 
         $paginatedRooms->setCollection($updatedRooms);
@@ -399,13 +425,21 @@ class OrderRoomService extends BaseService
         return $paginatedRooms;
     }
 
+
     private function getAvailableRoomsQuery($check_in, $check_out, $totalGuest)
     {
         return DB::table('room as r')
             ->join('room_type as rt', 'r.room_type_id', '=', 'rt.id')
-            ->join('floor as fl', 'r.floor_id', '=', 'fl.id')
-            ->where('r.status', 1)
-            ->where('rt.number_of_people', $totalGuest)
+            ->selectRaw('
+            rt.type_name as roomTypeName,
+            rt.price_per_hour as pricePerHour,
+            rt.price_per_day as pricePerDay,
+            rt.price_overtime as priceOverTime,
+            ARRAY_AGG(r.id) AS roomId,
+            count(case when r.status = 1 then 1 end) as phongTrong,
+            count(case when r.status = 2 then 1 end) as dangO,
+            sum(case when r.status = 1 then rt.number_of_people else 0 end) as soKhachCoTheO
+        ')
             ->whereNotExists(function ($query) use ($check_in, $check_out) {
                 $query->select(DB::raw(1))
                     ->from('bookings as b')
@@ -414,8 +448,11 @@ class OrderRoomService extends BaseService
                         $query->where('b.check_in', '<=', $check_out)
                             ->where('b.check_out', '>=', $check_in);
                     });
-            });
+            })
+            ->groupBy('rt.type_name', 'rt.price_per_hour', 'rt.price_per_day', 'rt.price_overtime', 'rt.number_of_people')
+            ->havingRaw('SUM(CASE WHEN r.status = 1 THEN rt.number_of_people ELSE 0 END) >= ?', [$totalGuest]);
     }
+
 
     private function calculateRoomPrice($roomId, $checkIn, $checkOut)
     {
@@ -428,5 +465,10 @@ class OrderRoomService extends BaseService
         return $this->handleCalculatorPrice($req);
     }
 
-    private function getListRoomUsingService($ruUuid) {}
+    public function getListRoomUsingService($ruUuid)
+    {
+        $this->model = new RoomUsing();
+        $data = $this->findFirstByUuid($ruUuid);
+        return $data;
+    }
 }
