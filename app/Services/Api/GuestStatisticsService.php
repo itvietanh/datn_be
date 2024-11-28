@@ -34,6 +34,20 @@ class GuestStatisticsService extends BaseService
     {
         return $this->model->count();
     }
+    public function getStatisticsByDateRange($startDate, $endDate)
+    {
+        $startDate = Carbon::createFromFormat('Ymd', $startDate)->format('Y-m-d');
+        $endDate = Carbon::createFromFormat('Ymd', $endDate)->format('Y-m-d');
+
+        return $this->model
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total_guests')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+    }
+
+
 
     // Khách mới trong tháng hiện tại
     public function getNewGuestsThisMonth()
@@ -44,7 +58,7 @@ class GuestStatisticsService extends BaseService
     }
 
     // Khách hàng đang hoạt động (ví dụ theo trường 'representative' có dữ liệu)
-    public function getActiveGuests()
+    public function  getActiveGuests()
     {
         return $this->model->whereNotNull('representative')->count();
     }

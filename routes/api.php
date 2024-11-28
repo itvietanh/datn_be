@@ -276,7 +276,8 @@ Route::group([
             Route::group([
                 'prefix' => 'guest'
             ], function () {
-                Route::get('/total-guests', [GuestStatisticsController::class, 'totalGuests']);
+                Route::get('/total-guests', action: [GuestStatisticsController::class, 'totalGuests']);
+                Route::get('/daily', [GuestStatisticsController::class, 'getGuestStatistics']);
                 Route::get('/new-guests-this-month', [GuestStatisticsController::class, 'newGuestsThisMonth']);
                 Route::get('/active-guests', [GuestStatisticsController::class, 'activeGuests']);
                 Route::get('/all', [GuestStatisticsController::class, 'allStatistics']); // Route để lấy tất cả thống kê khách hàng
@@ -298,7 +299,7 @@ Route::group([
                 'prefix' => 'employees'
             ], function () {
                 Route::get('', [EmployeeStatisticsController::class, 'employeesStatistical']);
-                Route::get('by-date', [EmployeeStatisticsController::class, 'getEmployeesByDate']);
+                Route::get('Allin', [EmployeeStatisticsController::class, 'getHotelEmployeeStats']);
                 Route::get('export-transactions', [EmployeeStatisticsController::class, 'exportExcelStatistical']);
             });
         });
@@ -323,19 +324,17 @@ Route::group([
             Route::delete('{uuid}', [PaymentMethodController::class, 'destroy']);
         });
 
-       // Thanh toán MoMo
-            Route::group([
-                'prefix' => 'payment-momo'
-            ], function () {
-                // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
-                // Gửi yêu cầu thanh toán tới MoMo
-                Route::post('', [PaymentController::class, 'createPayment']);
-                Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
-                // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
-                Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
-
-            });
-
+        // Thanh toán MoMo
+        Route::group([
+            'prefix' => 'payment-momo'
+        ], function () {
+            // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
+            // Gửi yêu cầu thanh toán tới MoMo
+            Route::post('', [PaymentController::class, 'createPayment']);
+            Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
+            // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
+            Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
 
         });
     });
+});
