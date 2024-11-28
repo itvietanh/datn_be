@@ -300,7 +300,7 @@ Route::group([
                 'prefix' => 'employees'
             ], function () {
                 Route::get('', [EmployeeStatisticsController::class, 'employeesStatistical']);
-                Route::get('Allin', [EmployeeStatisticsController::class, 'getHotelEmployeeStats']);
+                Route::get('Allin', [EmployeeStatisticsController::class, 'getEmployeesByDate']);
                 Route::get('export-transactions', [EmployeeStatisticsController::class, 'exportExcelStatistical']);
             });
             /** Thống kê loại phòng */
