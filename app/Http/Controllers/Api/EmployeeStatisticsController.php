@@ -23,18 +23,19 @@ class EmployeeStatisticsController extends BaseController
      * Lấy danh sách nhân viên theo khoảng ngày
      */
     public function getEmployeesByDate(Request $request)
-    {
-        $data = DB::table('hotel as h')
-            ->leftJoin('employee as e', 'h.id', '=', 'e.hotel_id')
-            ->select('h.id as hotel_id', 'h.name as hotel_name', DB::raw('COUNT(e.id) as total_employees'))
-            ->groupBy('h.id', 'h.name')
-            ->get();
+{
+    $data = DB::table('hotel as h')
+        ->leftJoin('employee as e', 'h.id', '=', 'e.hotel_id')
+        ->select('h.name as hotel_name', DB::raw('COUNT(e.id) as total_employees'))
+        ->groupBy('h.name')
+        ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $data
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data' => $data
+    ]);
+}
+
     ///////
     // public function getEmployeeCountByHotel()
     // {
