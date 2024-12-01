@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
+use App\Models\RoomUsing;
 use App\RoomStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use App\Services\Api\RoomService;
+use Carbon\Carbon;
 
 class RoomController extends BaseController
 {
@@ -102,16 +104,19 @@ class RoomController extends BaseController
         $this->service->delete($room->id);
         return $this->responseSuccess($room);
     }
-    public function updateRoomStatus(Request $request, $roomUuid)
+    public function handleOutRoom(Request $req)
     {
-        $room = Room::where('uuid', $roomUuid)->first();
+        $params = (object) $req->all();
+        $room = Room::where('uuid', $params->uuid)->first();
+        $ru = RoomUsing::where('room_id', $room->id)->first();
         if ($room) {
-            $room->status = 1; // Cập nhật trạng thái thành "1" (phòng chống)
+            $room->status = 1;
+            $ru->total_amount = $params->total_amount;
+            $ru->save();
+            $ru->delete();
             $room->save();
-
-            return response()->json(['message' => 'Room status updated successfully.'], 200);
+            return $this->responseSuccess($room->status, 200);
         }
-
         return response()->json(['message' => 'Room not found.'], 404);
     }
 }

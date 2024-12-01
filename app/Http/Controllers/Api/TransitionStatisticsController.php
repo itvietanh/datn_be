@@ -147,12 +147,11 @@ class TransitionStatisticsController extends BaseController
                 'data' => $transactions
             ]);
         } catch (\Exception $e) {
-            // Log lỗi nếu có vấn đề trong quá trình truy vấn
-            // \Log::error('Error fetching transaction data: ' . $e->getMessage());
-
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while fetching data.'
+                'errors' => [
+                    'message' => 'Lỗi hệ thống, vui lòng thử lại'
+                ]
             ], 500);
         }
     }

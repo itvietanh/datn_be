@@ -74,7 +74,12 @@ class OrderRoomController extends BaseController
     public function handleGetListRu(Request $req)
     {
         $data = $this->service->getListRoomUsingService($req->ruUuid);
-        $ruId = $data['id'];
+        dd($data);
+        if ($data) {
+            $ruId = $data['id'];
+        } else {
+            return $this->responseError();
+        }
         $query = DB::table('room_using_service as rus')
             ->select(
                 's.service_name as serviceName',

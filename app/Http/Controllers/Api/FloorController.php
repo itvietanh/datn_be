@@ -39,7 +39,7 @@ class FloorController extends BaseController
                     'totalGuests', (
                         SELECT COUNT(*)
                         FROM room_using_guest rug
-                        WHERE rug.room_using_id = room_using.id
+                        WHERE rug.room_using_id = room_using.id and room.status = 2
                     ),
                     'room_using_guest', (
                         SELECT jsonb_agg(
@@ -79,6 +79,8 @@ class FloorController extends BaseController
         if ($request->has('status')) {
             $query->where('room.status', $request->status);
         }
+
+        // dd($query->toRawSql());
 
         $data = $this->service->getListQueryBuilder($request, $query);
 

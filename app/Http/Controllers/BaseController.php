@@ -73,7 +73,9 @@ class BaseController extends Controller
     {
         return response()->json([
             'code' => 'NOT_FOUND',
-            'message' => 'Không tìm thấy'
+            'errors' => [
+                'message' => "Không tìm thấy dữ liệu"
+            ]
         ], 404);
     }
 
@@ -81,8 +83,9 @@ class BaseController extends Controller
     {
         return response()->json([
             'code' => 'NOT_FOUND',
-            'message' => $message ? $message : "Lỗi hệ thông"
+            'errors' => [
+                'message' => $message ? $message : "Đã có lỗi xảy ra, vui lòng thử lại!"
+            ]
         ], $code ? $code : 500);
     }
-
 }

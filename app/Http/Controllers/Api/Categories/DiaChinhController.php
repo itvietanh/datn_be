@@ -40,22 +40,9 @@ class DiaChinhController extends BaseController
         return $this->getPaging($data);
     }
 
-    public function store() {}
-
-
-    public function show(Request $req)
+    public function getComboboxQT(Request $req)
     {
-        //
-
-    }
-
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    public function destroy(string $id)
-    {
-        //
+        $data = $this->service->getDmQuocTich($req);
+        return $this->getPaging($data);
     }
 }

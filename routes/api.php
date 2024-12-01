@@ -78,7 +78,7 @@ Route::group([
             Route::get('', [RoomController::class, 'show']);
             Route::put('', [RoomController::class, 'update']);
             Route::delete('', [RoomController::class, 'destroy']);
-            Route::put('{uuid}', [RoomController::class, 'updateRoomStatus']);
+            Route::put('out-room', [RoomController::class, 'handleOutRoom']);
         });
 
         // Kiểu phòng
@@ -214,6 +214,7 @@ Route::group([
             'prefix' => 'categories/diachinh'
         ], function () {
             Route::get('options', [DiaChinhController::class, 'getCombobox']);
+            Route::get('quoc-tich', [DiaChinhController::class, 'getComboboxQT']);
         });
 
         /** Đặt phòng */
