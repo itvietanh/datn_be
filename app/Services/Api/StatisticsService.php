@@ -41,27 +41,24 @@ class StatisticsService extends BaseService
         ];
     }
 
-    // Lấy tổng doanh thu từ bảng service_categories
+    // Lấy tổng doanh thu từ bảng service
     public function getTotalRevenue()
     {
-        return $this->model
-            ->join('service_categories', 'service.id', '=', 'service_categories.service_id') // Join với bảng service_categories
-            ->sum('service_categories.price'); // Tính tổng price từ bảng service_categories
+        return $this->model->sum('price'); // Tính tổng cột 'price' trong bảng service
     }
 
     // Tính số lần sử dụng dịch vụ
     public function getServiceUsageCount()
     {
-        return $this->model->count(); // Tính số lần sử dụng dịch vụ
+        return $this->model->count(); // Đếm số lượng bản ghi trong bảng service
     }
 
     // Lấy doanh thu hàng tháng
     public function getMonthlyRevenue()
-    {
+    {   
         return $this->model
-            ->join('service_categories', 'service.id', '=', 'service_categories.service_id') // Join với bảng service_categories
-            ->selectRaw('SUM(service_categories.price) as total_revenue, EXTRACT(MONTH FROM service_categories.created_at) as month, EXTRACT(YEAR FROM service_categories.created_at) as year, service.service_name')
-            ->groupByRaw('year, month, service.service_name')
+            ->selectRaw('SUM(price) as total_revenue, EXTRACT(MONTH FROM created_at) as month, EXTRACT(YEAR FROM created_at) as year')
+            ->groupByRaw('year, month')
             ->get();
     }
 
@@ -69,17 +66,15 @@ class StatisticsService extends BaseService
     public function getDailyRevenue($date)
     {
         return $this->model
-            ->join('service_categories', 'service.id', '=', 'service_categories.service_id') // Join với bảng service_categories
-            ->whereDate('service_categories.created_at', $date)
-            ->sum('service_categories.price'); // Tổng doanh thu của ngày
+            ->whereDate('created_at', $date)
+            ->sum('price'); // Tổng doanh thu của ngày
     }
 
     // Lấy doanh thu theo tuần
     public function getWeeklyRevenue($startDate, $endDate)
     {
         return $this->model
-            ->join('service_categories', 'service.id', '=', 'service_categories.service_id') // Join với bảng service_categories
-            ->whereBetween('service_categories.created_at', [$startDate, $endDate])
-            ->sum('service_categories.price'); // Tổng doanh thu trong khoảng thời gian (tuần)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('price'); // Tổng doanh thu trong khoảng thời gian (tuần)
     }
 }

@@ -2,72 +2,91 @@
 
 namespace App\Services\Api;
 
-use App\Exports\RoomTypeExport;
 use App\Models\RoomType;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
 
-class RoomTypeStatisticsService extends BaseService
+class RoomtypeStatisticsService extends BaseService
 {
     public function __construct()
     {
         $this->model = new RoomType();
     }
 
-    // Lấy thống kê số lượng loại phòng
-    public function getRoomTypeStatistics()
+    // Lấy tất cả thống kê
+    public function getAllStatistics()
     {
-        $totalRoomTypes = $this->getTotalRoomTypes();
-        $roomTypesList = $this->getRoomTypesList();
-
         return [
-            'total_room_types' => $totalRoomTypes, // Tổng số loại phòng
-            'room_types_list' => $roomTypesList   // Danh sách các loại phòng
+            'total_room_types' => $this->getTotalRoomTypes(), // Tổng số loại phòng
+            'total_rooms' => $this->getTotalRooms(), // Tổng số phòng hiện có
+            'room_types_statistics' => $this->getRoomtypeData() // Thống kê chi tiết theo loại phòng
         ];
     }
 
     // Tổng số loại phòng
     public function getTotalRoomTypes()
     {
-        return $this->model->count();
+        return $this->model->count(); // Đếm tổng số loại phòng
     }
 
-    // Lấy danh sách các loại phòng
-    public function getRoomTypesList()
+    // Tổng số phòng hiện có
+    public function getTotalRooms()
     {
-        return $this->model->select('id', 'type_name', 'description', 'price_per_hour', 'price_per_day')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return DB::table('room')->count(); // Đếm tổng số phòng từ bảng room
     }
 
-    // lấy danh sách dựa theo hotel_id
-    public function getTotalRoomsByHotel()
+    // Lấy thống kê loại phòng
+    public function renderDataStatisticalRoomtype($req)
     {
-        $data = DB::table('room')
-            ->join('room_type', 'room.room_type_id', '=', 'room_type.id')
-            ->select(
-                'room.hotel_id',
-                'room_type.type_name',
-                DB::raw('COUNT(room.id) as total_room')
-            )
-            ->groupBy('room.hotel_id', 'room_type.type_name')
-            ->get();
+        $totalRoomTypes = $this->getTotalRoomTypes();
+        $statistical = $this->getRoomtypeData(); // Lấy dữ liệu thống kê loại phòng
 
-        return $data;
+        return [
+            'statistical' => $statistical,
+            'total_room_types' => $totalRoomTypes
+        ];
     }
 
-    // Xuất excel
-    public function exportRoomTypes()
+    // Lấy dữ liệu thống kê loại phòng (không cần tham số ngày)
+    public function getRoomtypeData()
     {
-        $roomTypes = $this->model->select('type_name', 'description', 'price_per_hour', 'price_per_day', 'created_at')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->toArray();
-        $export = new RoomTypeExport($roomTypes);
-        $filePath = storage_path('app/public/RoomTypeStatistics.xlsx');
-        file_put_contents($filePath, $export->export());
+        try {
+            // Truy vấn dữ liệu từ bảng room_type kết hợp với bảng room
+            $query = DB::table('room_type as rt')
+                ->leftJoin('room as r', 'rt.id', '=', 'r.room_type_id') // Kết hợp bảng room với room_type
+                ->select(
+                    'rt.type_name as roomTypeName', // Tên loại phòng
+                    DB::raw('COUNT(r.id) as totalRooms') // Đếm số phòng từ bảng room
+                )
+                ->groupBy('rt.id', 'rt.type_name') // Nhóm theo loại phòng
+                ->orderBy('rt.type_name', 'asc') // Sắp xếp theo tên loại phòng
+                ->get(); // Lấy tất cả dữ liệu
 
-        return $filePath;
+            return $query;
+        } catch (\Exception $e) {
+            \Log::error('Error fetching room type data: ' . $e->getMessage());
+            throw new \Exception('An error occurred while fetching room type data.');
+        }
+    }
+
+    // Lấy thống kê chi tiết theo loại phòng, trả về kết quả cho API
+    public function getRoomtypeStatisticsForApi()
+    {
+        try {
+            // Lấy thống kê dữ liệu loại phòng
+            $roomTypes = $this->getRoomtypeData();
+
+            return [
+                'code' => 'OK',
+                'message' => 'Success',
+                'data' => $roomTypes,
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Error fetching room type data for API: ' . $e->getMessage());
+            return [
+                'code' => 'ERROR',
+                'message' => 'An error occurred while fetching room type data.',
+            ];
+        }
     }
 }

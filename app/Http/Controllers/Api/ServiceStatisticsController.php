@@ -38,17 +38,26 @@ class ServiceStatisticsController extends BaseController
         return $this->responseSuccess($data);
     }
 
-    // Phương thức để lấy doanh thu hàng tháng
-    public function monthlyRevenue()
+    // Phương thức để lấy doanh thu hàng tháng (Dựa trên khoảng ngày từ request)
+    public function monthlyRevenue(Request $request)
     {
-        $monthlyRevenue = $this->statisticsService->getMonthlyRevenue();
-        return response()->json($monthlyRevenue);
+        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
+
+        $monthlyRevenue = $this->statisticsService->getMonthlyRevenue($startDate, $endDate);
+
+        $data = [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'monthly_revenue' => $monthlyRevenue,
+        ];
+        return $this->responseSuccess($data);
     }
 
     // Phương thức để lấy doanh thu theo ngày
     public function dailyRevenue(Request $request)
     {
-        $date = $request->input('date', now()->toDateString()); // Mặc định là ngày hiện tại nếu không truyền
+        $date = $request->input('date', now()->toDateString());
         $dailyRevenue = $this->statisticsService->getDailyRevenue($date);
 
         $data = [

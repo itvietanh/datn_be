@@ -23,32 +23,43 @@ class EmployeeStatisticsController extends BaseController
      * Lấy danh sách nhân viên theo khoảng ngày
      */
     public function getEmployeesByDate(Request $request)
-    {
-        try {
-            $start_date = $request->input('dateFrom');
-            $end_date = $request->input('dateTo');
+{
+    $data = DB::table('hotel as h')
+        ->leftJoin('employee as e', 'h.id', '=', 'e.hotel_id')
+        ->select('h.name as hotel_name', DB::raw('COUNT(e.id) as total_employees'))
+        ->groupBy('h.name')
+        ->get();
 
-            $employees = DB::table('employee')
-                ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as total_employees'))
-                ->whereBetween('created_at', [$start_date, $end_date])
-                ->groupBy('date')
-                ->orderBy('date', 'desc')
-                ->get();
+    return response()->json([
+        'success' => true,
+        'data' => $data
+    ]);
+}
 
-            return response()->json([
-                'success' => true,
-                'data' => $employees
-            ]);
-        } catch (\Exception $e) {
-            // Log lỗi nếu có vấn đề trong quá trình truy vấn
-            // \Log::error('Error fetching employee data: ' . $e->getMessage());
+    ///////
+    // public function getEmployeeCountByHotel()
+    // {
+    //     try {
+    //         // Thống kê số lượng nhân viên theo khách sạn
+    //         $statistics = DB::table('employee')
+    //             ->select('hotel_id', DB::raw('COUNT(*) as total_employees'))
+    //             ->whereNull('deleted_at') // Chỉ tính nhân viên chưa bị xóa
+    //             ->groupBy('hotel_id')
+    //             ->get();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred while fetching data.'
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $statistics,
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Error fetching data',
+    //             'error' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
 
     /**
      * Thống kê nhân viên
