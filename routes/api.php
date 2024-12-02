@@ -79,6 +79,7 @@ Route::group([
             Route::put('', [RoomController::class, 'update']);
             Route::delete('', [RoomController::class, 'destroy']);
             Route::put('out-room', [RoomController::class, 'handleOutRoom']);
+            Route::put('change-status', [RoomController::class, 'handleChangeRoomStatus']);
         });
 
         // Kiểu phòng

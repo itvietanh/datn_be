@@ -29,6 +29,7 @@ class FloorController extends BaseController
                 DB::raw("COALESCE(
             jsonb_agg(
                 DISTINCT jsonb_build_object(
+                    'ruUuid', room_using.uuid,
                     'roomUuid', room.uuid,
                     'roomNumber', room.room_number,
                     'status', room.status,
@@ -79,8 +80,6 @@ class FloorController extends BaseController
         if ($request->has('status')) {
             $query->where('room.status', $request->status);
         }
-
-        // dd($query->toRawSql());
 
         $data = $this->service->getListQueryBuilder($request, $query);
 

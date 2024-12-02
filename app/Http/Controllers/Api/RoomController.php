@@ -6,6 +6,8 @@ use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\RoomUsing;
+use App\Models\RoomUsingService;
+use App\Models\Service;
 use App\RoomStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -109,14 +111,40 @@ class RoomController extends BaseController
         $params = (object) $req->all();
         $room = Room::where('uuid', $params->uuid)->first();
         $ru = RoomUsing::where('room_id', $room->id)->first();
+        if ($ru->id) {
+            $rus = RoomUsingService::where('room_using_id', $ru->id)->first();
+        }
+        if ($rus->service_id) {
+            $service = Service::where('id', $rus->service_id)->get();
+            if ($service) {
+                $totalPriceService = 0;
+                foreach ($service as $value) {
+                    $totalPriceService += $value->price;
+                }
+                $params->total_amount = $params->total_amount + $totalPriceService;
+            }
+        }
         if ($room) {
-            $room->status = 1;
+            $room->status = RoomStatusEnum::CAN_DON->value;
             $ru->total_amount = $params->total_amount;
             $ru->save();
             $ru->delete();
             $room->save();
             return $this->responseSuccess($room->status, 200);
         }
-        return response()->json(['message' => 'Room not found.'], 404);
+        return $this->responseError();
+    }
+
+    public function handleChangeRoomStatus(Request $req)
+    {
+        $params = (object) $req->all();
+        $room = Room::where('uuid', $params->uuid)->first();
+        if ($room) {
+            $room->status = RoomStatusEnum::PHONG_TRONG->value;
+            $room->save();
+        } else {
+            return $this->response404();
+        }
+        return $this->responseSuccess($room->status);
     }
 }

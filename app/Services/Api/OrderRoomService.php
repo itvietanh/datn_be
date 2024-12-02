@@ -464,11 +464,4 @@ class OrderRoomService extends BaseService
 
         return $this->handleCalculatorPrice($req);
     }
-
-    public function getListRoomUsingService($ruUuid)
-    {
-        $this->model = new RoomUsing();
-        $data = $this->findFirstByUuid($ruUuid);
-        return $data;
-    }
 }

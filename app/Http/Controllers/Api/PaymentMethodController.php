@@ -41,7 +41,7 @@ class PaymentMethodController extends BaseController
 
     public function getCombobox(Request $req)
     {
-        $fillable = ['id as value', 'name as label', 'qr_code as qrCode', 'description as desc'];
+        $fillable = ['id as value', 'name as label', 'qr_code as qrCode', 'description as desc', 'icon'];
 
         $searchParams = (object) $req->only(['id', 'q']);
 
@@ -53,8 +53,8 @@ class PaymentMethodController extends BaseController
             if (!empty($searchParams->id)) {
                 $query->where('id', '=', $searchParams->id);
             }
+            $query->orderBy('id', 'asc');
         });
-
         return $this->getPaging($data);
     }
 

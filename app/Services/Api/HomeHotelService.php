@@ -55,8 +55,20 @@ class HomeHotelService extends BaseService
             ->leftJoin('transition as T', 'T.id', '=', 'RU.trans_id');
 
         if ($req->has('uuid')) {
-            $query->where('r.uuid', $req->uuid);
+            $subquery = DB::table('room_using')
+                ->select('id')
+                ->where('uuid', $req->uuid)
+                ->limit(1);
+            $query->where('RUG.room_using_id', '=', $subquery);
+        } else {
+            return response()->json([
+                'code' => 404,
+                'errors' => [
+                    'message' => "Đã có lỗi xảy ra, vui lòng thử lại!"
+                ]
+            ]);
         }
+
         $query->where('G.representative', true);
         $data = $this->getOneQueryBuilder($query);
         return $data;
@@ -84,9 +96,8 @@ class HomeHotelService extends BaseService
                 'rug.check_out as checkOut',
             )
             ->join('guest as g', 'rug.guest_id', '=', 'g.id')
-            ->join('room_using as ru', 'rug.room_using_id', '=', 'ru.id')
-            ->join('transition as t', 't.id', '=', 'ru.trans_id');
-        $query->where('t.uuid', $req->uuid);
+            ->join('room_using as ru', 'rug.room_using_id', '=', 'ru.id');
+        $query->where('ru.uuid', $req->uuid);
         return $this->getListQueryBuilder($req, $query);
     }
 
@@ -108,7 +119,7 @@ class HomeHotelService extends BaseService
             $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
             $roomUsingGuest = $req->roomUsingGuest;
             $roomUsing = $this->getRoomUsingByUuid($req->roomUsingGuest['ruUuid']);
-            
+
             foreach ($guestId as $value) {
                 $roomUsingGuest['guest_id'] = $value->id;
                 $roomUsingGuest['room_using_id'] = $roomUsing->id;

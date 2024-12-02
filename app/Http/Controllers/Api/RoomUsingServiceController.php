@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Services\Api\RoomUsingService;
 use App\Services\BaseService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class RoomUsingServiceController extends BaseController
 {
@@ -44,7 +45,7 @@ class RoomUsingServiceController extends BaseController
     {
         $data = $request->all();
         $data['service_using_date'] = Carbon::now();
-        $ruId = RoomUsing::where('uuid', $data['room_using_id'])->first();
+        $ruId = DB::table('room_using')->where('uuid', $data['room_using_id'])->first();
         $data['room_using_id'] = $ruId->id;
         if (isset($data['service_id']) && is_array($data['service_id'])) {
             foreach ($data['service_id'] as $serviceId) {
