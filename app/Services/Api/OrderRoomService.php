@@ -394,74 +394,126 @@ class OrderRoomService extends BaseService
         $check_in = $this->convertLongToTimestamp($req->checkIn);
         $check_out = $this->convertLongToTimestamp($req->checkOut);
 
-        $availableRoomsQuery = $this->getAvailableRoomsQuery($check_in, $check_out, $req->totalGuest);
+        $data = $this->getAvailableRoomsQuery($req);
 
-        $paginatedRooms = $this->getListQueryBuilder($req, $availableRoomsQuery);
+        $data->getCollection()->transform(function ($value) use ($check_in, $check_out) {
+            // Tính giá phòng cho từng phòng
+            $priceData = $this->calculateRoomPrice($value->id, $check_in, $check_out);
 
-        $roomIds = $paginatedRooms->getCollection()->pluck('roomid')->toArray();
-
-        $roomIdsArray = [];
-
-        foreach ($roomIds as $value) {
-            $values = explode(',', trim($value, '{}'));
-
-            foreach ($values as $roomId) {
-                $roomIdsArray[] = (int) $roomId;
-            }
-        }
-
-        $updatedRooms = $paginatedRooms->getCollection()->map(function ($room) use ($check_in, $check_out, $roomIdsArray) {
-            if (is_array($roomIdsArray)) {
-                foreach ($roomIdsArray as $value) {
-                    $priceData = $this->calculateRoomPrice($value, $check_in, $check_out);
-                }
-                return (object) array_merge((array) $room, $priceData);
-            }
-            return $room;
+            // Gộp priceData vào từng phần tử dữ liệu
+            return (object) array_merge((array) $value, (array) $priceData);
         });
 
-        $paginatedRooms->setCollection($updatedRooms);
-
-        return $paginatedRooms;
+        return $data;
     }
 
 
-    private function getAvailableRoomsQuery($check_in, $check_out, $totalGuest)
+    private function getAvailableRoomsQuery($req)
     {
-        return DB::table('room as r')
-            ->join('room_type as rt', 'r.room_type_id', '=', 'rt.id')
-            ->selectRaw('
-            rt.type_name as roomTypeName,
-            rt.price_per_hour as pricePerHour,
-            rt.price_per_day as pricePerDay,
-            rt.price_overtime as priceOverTime,
-            ARRAY_AGG(r.id) AS roomId,
-            count(case when r.status = 1 then 1 end) as phongTrong,
-            count(case when r.status = 2 then 1 end) as dangO,
-            sum(case when r.status = 1 then rt.number_of_people else 0 end) as soKhachCoTheO
-        ')
-            ->whereNotExists(function ($query) use ($check_in, $check_out) {
-                $query->select(DB::raw(1))
-                    ->from('bookings as b')
-                    ->whereColumn('b.room_id', 'r.id')
-                    ->where(function ($query) use ($check_in, $check_out) {
-                        $query->where('b.check_in', '<=', $check_out)
-                            ->where('b.check_out', '>=', $check_in);
-                    });
-            })
-            ->groupBy('rt.type_name', 'rt.price_per_hour', 'rt.price_per_day', 'rt.price_overtime', 'rt.number_of_people')
-            ->havingRaw('SUM(CASE WHEN r.status = 1 THEN rt.number_of_people ELSE 0 END) >= ?', [$totalGuest]);
+        $this->model = new RoomType();
+        $columns = [
+            'rt.id',
+            'rt.type_name AS typeName',
+            'rt.number_of_people AS numberOfPeople',
+            'rt.price_per_hour AS pricePerHour',
+            'rt.price_overtime AS priceOvertime',
+            'rt.price_per_day AS pricePerDay',
+            DB::raw('COUNT(CASE WHEN r.status = 1 THEN r.id END) AS phongTrong'),
+            DB::raw('COUNT(CASE WHEN r.status = 2 THEN r.id END) AS dangO'),
+            DB::raw('COUNT(r.id) AS totalRooms'),
+            DB::raw('SUM(rt.number_of_people) AS totalCapacity'),
+            DB::raw('SUM(rt.number_of_people) - COALESCE(SUM(b.guest_count), 0) AS availableCapacity')
+        ];
+
+        // Chuyển đổi timestamp nếu cần
+        $req->checkIn = $this->convertLongToTimestamp($req->checkIn);
+        $req->checkOut = $this->convertLongToTimestamp($req->checkOut);
+
+        $data = $this->getList($req, $columns, function ($query) use ($req) {
+            // Join các bảng
+            $query->from('room_type as rt')
+                ->join('room as r', 'r.room_type_id', '=', 'rt.id')
+                ->leftJoin('bookings as b', function ($join) use ($req) {
+                    $join->on('b.room_type_id', '=', 'rt.id')
+                        ->where('b.check_in', '>=', $req->checkIn)
+                        ->where('b.check_out', '<=', $req->checkOut);
+                });
+            // Thêm điều kiện lọc
+            $query->groupBy('rt.id', 'rt.type_name', 'rt.number_of_people', 'rt.price_per_hour', 'rt.price_overtime', 'rt.price_per_day')
+                ->havingRaw('SUM(rt.number_of_people) - COALESCE(SUM(b.guest_count), 0) >= ?', [$req->totalGuest]);
+        });
+        return $data;
     }
 
-
-    private function calculateRoomPrice($roomId, $checkIn, $checkOut)
+    public function calculateRoomPrice($roomTypeId, $checkInParam, $checkOutParam)
     {
-        $req = new Request([
-            'id' => $roomId,
-            'check_in' => $checkIn,
-            'check_out' => $checkOut
-        ]);
+        $this->model = new RoomType();
+        $roomType = $this->find($roomTypeId);
 
-        return $this->handleCalculatorPrice($req);
+        if (!$roomType) {
+            return response()->json([
+                'error' => 'NOT FOUND ROOM TYPE'
+            ], 404);
+        }
+
+        // Kiểm tra thời gian giữa check-in và check-out
+        if ($checkInParam) {
+            if (strlen($checkInParam) == 14) {
+                $checkIn = \DateTime::createFromFormat('YmdHis', $checkInParam);
+                $checkOut = $checkOutParam
+                    ? \DateTime::createFromFormat('YmdHis', $checkOutParam)
+                    : new \DateTime();
+            } else {
+                $checkIn = new \DateTime($checkInParam);
+                $checkOut = $checkOutParam
+                    ? new \DateTime($checkOutParam)
+                    : new \DateTime();
+            }
+
+            if ($checkIn && $checkOut) {
+                // Tính thời gian chênh lệch giữa check-in và check-out theo giờ
+                $interval = $checkIn->diff($checkOut);
+                $hours = ($interval->days * 24) + $interval->h + ($interval->i / 60); // Chuyển đổi sang giờ
+
+                // Tính giá tiền dựa trên giờ
+                if ($hours < 24) {
+
+                    $totalPrice = $roomType->price_per_hour * $hours;
+
+                    $timeNow = Carbon::now();
+                    if ($timeNow > $checkOut) {
+                        $remainingHours = $checkOut->diff($timeNow);
+
+                        $remainingHoursAsNumber = $remainingHours->days * 24 + $remainingHours->h + ($remainingHours->i / 60);
+
+                        $totalPrice += $remainingHoursAsNumber * (int) $roomType->price_per_hour;
+                    }
+                } else {
+                    // Nếu thời gian >= 24 giờ, tính số ngày và số giờ dư
+                    $days = $hours / 24; // Số ngày
+                    $remainingDay = $hours - ($days * 24); // Số giờ còn lại
+
+                    // Tính tổng tiền: tiền cho số ngày + tiền cho số giờ dư
+                    $totalPrice = $roomType->price_per_day * $days;
+                }
+
+                // Tính mã số thuế (VAT)
+                $vat = $roomType->vat;
+                $tax = ($totalPrice * $vat) / 100;
+
+                // Tổng tiền sau thuế
+                $finalPrice = $totalPrice + $tax;
+
+                $data = [
+                    'total_price' => $totalPrice,
+                    'vat' => $tax,
+                    'final_price' => $finalPrice,
+                    'check_in' => $checkInParam,
+                    'check_out' => $checkOutParam,
+                ];
+
+                return $data;
+            }
+        }
     }
 }

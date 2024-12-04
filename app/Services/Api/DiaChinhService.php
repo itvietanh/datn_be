@@ -24,7 +24,7 @@ class DiaChinhService extends BaseService
         $this->model = new Provinces();
         $data = $this->getList($req, $coulumn, function ($query) use ($searchParams) {
             if (!empty($searchParams->q)) {
-                $query->where('full_name', 'like', '%' . $searchParams->q . '%');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . strtolower($searchParams->q) . '%']);
             }
 
             if (!empty($searchParams->values)) {
@@ -50,7 +50,7 @@ class DiaChinhService extends BaseService
             }
 
             if (!empty($searchParams->q)) {
-                $query->where('full_name', 'like', '%' . $searchParams->q . '%');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . strtolower($searchParams->q) . '%']);
             }
         }, true);
         return $data;
@@ -71,7 +71,7 @@ class DiaChinhService extends BaseService
             }
 
             if (!empty($searchParams->q)) {
-                $query->where('full_name', 'like', '%' . $searchParams->q . '%');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . strtolower($searchParams->q) . '%']);
             }
         }, true);
         return $data;

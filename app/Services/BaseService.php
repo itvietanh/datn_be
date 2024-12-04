@@ -56,7 +56,7 @@ class BaseService
         if ($whereParams && is_callable($whereParams)) {
             $whereParams($query);
         }
-        
+
         if ($cacheable) {
             // Tạo một khóa cache duy nhất cho truy vấn dựa trên tham số đầu vào
             $cacheKey = 'getList_' . md5(json_encode($request->all()) . json_encode($columns));

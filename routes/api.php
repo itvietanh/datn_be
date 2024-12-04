@@ -256,6 +256,7 @@ Route::group([
             'prefix' => 'menu'
         ], function () {
             Route::get('get-list', [MenuController::class, 'index']);
+            Route::get('get-list-parent', [MenuController::class, 'getListParent']);
             Route::post('', [MenuController::class, 'store']);
             Route::get('', [MenuController::class, 'show']);
             Route::put('', [MenuController::class, 'update']);
@@ -347,7 +348,7 @@ Route::group([
             // Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
 
 
-            Route::post('/', [PaymentController::class, 'payWithMoMo'])->name('payment');
+            Route::post('', [PaymentController::class, 'payWithMoMo'])->name('payment');
             Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
             Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
 

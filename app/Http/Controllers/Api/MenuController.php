@@ -109,4 +109,21 @@ class MenuController extends BaseController
         return $this->responseSuccess($Menu);
     }
 
+    public function getListParent(Request $req)
+    {
+        $column = ['id as value', 'name as label'];
+        $searchParams = (object) $req->only(['q', 'values']);
+        $menu = $this->service->getList($req, $column, function ($query) use ($searchParams) {
+            if (!empty($searchParams->q)) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($searchParams->q) . '%']);
+            }
+
+            if (!empty($searchParams->values)) {
+                $query->where('id', '=', $searchParams->values);
+            }
+
+            $query->whereNull('parent_uid');
+        }, false);
+        return $this->getPaging($menu);
+    }
 }
