@@ -27,19 +27,35 @@ class GuestController extends BaseController
      */
     public function index(Request $request)
     {
-
-        $column = ['uuid', 'name', 'contact_details', 'id_number', 'passport_number', 'created_at', 'updated_at', 'created_by', 'updated_by'];
-
-        $searchParams = (object) $request->only(['name, id_number']);
-
-        $data = $this->service->getList($request, $column, function ($query) use ($searchParams) {
+        $columns = [
+            'guest.uuid',
+            'guest.name',
+            'guest.contact_details',
+            'guest.id_number',
+            'guest.passport_number',
+            'guest.created_at',
+            'guest.updated_at',
+            'guest.deleted_at',
+            'guest.created_by',
+            'guest.updated_by',
+            'guest.province_id',
+            'guest.district_id',
+            'guest.ward_id',
+            'guest.phone_number',
+            'guest.representative',
+            'guest.gender',
+            'guest.birth_date',
+            'guest.nat_id'
+        ];
+        $searchParams = (object) $request->only(['name', 'id_number']);
+        $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
             if (!empty($searchParams->name)) {
-                $query->where('name', 'like', '%' . $searchParams->name . '%');
+                $query->where('guest.name', 'like', '%' . $searchParams->name . '%');
             }
-
-            if (!empty($searchParams->name)) {
-                $query->where('id_number', '=', $searchParams->name);
+            if (!empty($searchParams->id_number)) {
+                $query->where('guest.id_number', '=', $searchParams->id_number);
             }
+            $query->with(['province', 'district', 'ward']);
         });
         return $this->getPaging($data);
     }
