@@ -108,6 +108,7 @@ class RoomController extends BaseController
         $this->service->delete($room->id);
         return $this->responseSuccess($room);
     }
+
     public function handleOutRoom(Request $req)
     {
         $params = (object) $req->all();
@@ -116,10 +117,13 @@ class RoomController extends BaseController
         $trans = Transition::where('id', $ru->trans_id)->first();
         $rus = RoomUsingService::where('room_using_id', $ru->id)->first();
 
-        if ($ru->id) {
+        if (isset($ru->id)) {
             $rus = RoomUsingService::where('room_using_id', $ru->id)->first();
+        } else {
+            $this->response404();
         }
-        if ($rus->service_id) {
+
+        if (isset($rus->service_id)) {
             $service = Service::where('id', $rus->service_id)->get();
             if ($service) {
                 $totalPriceService = 0;
@@ -128,18 +132,25 @@ class RoomController extends BaseController
                 }
                 $params->total_amount = $params->total_amount + $totalPriceService;
             }
+        } else {
+            $this->response404();
         }
+
         if ($room) {
             $room->status = RoomStatusEnum::CAN_DON->value;
             $ru->total_amount = $params->total_amount;
             $trans->payment_status = PaymentStatusEnum::DA_THANH_TOAN->value;
-            $rus->status = PaymentStatusEnum::DA_THANH_TOAN->value;
-            $rus->save();
+            if ($rus) {
+                $rus->status = PaymentStatusEnum::DA_THANH_TOAN->value;
+                $rus->save();
+            }
             $trans->save();
             $ru->save();
             $ru->delete();
             $room->save();
             return $this->responseSuccess($room->status, 200);
+        } else {
+            $this->response404();
         }
         return $this->responseError();
     }

@@ -17,6 +17,13 @@ class BookingController extends BaseController
         $this->service = $service;
     }
 
+    public function store(Request $req)
+    {
+        // dd($req);
+        $data = $this->service->handleOrderRoom($req);
+        return $this->responseSuccess($data, 201);
+    }
+
     public function getListBookingRoom(Request $req)
     {
         $data = $this->service->getBookingList($req);

@@ -244,6 +244,8 @@ Route::group([
             'prefix' => 'booking-room'
         ], function () {
             Route::get('get-list', [BookingController::class, 'getListBookingRoom']);
+            Route::post('', [BookingController::class, 'store']);
+            
         });
 
         /** Lịch sử đặt phòng */

@@ -20,6 +20,9 @@ class Booking extends Model
         'updated_at',
         'status',
         'representative_id',
-        'room_using_id'
+        'room_using_id',
+        'group_name',
+        'room_quantity',
+        'order_date'
     ];
 }

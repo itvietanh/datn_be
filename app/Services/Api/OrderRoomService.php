@@ -282,29 +282,23 @@ class OrderRoomService extends BaseService
             ->whereNull('deleted_at')->first();
 
         if ($roomUsing) {
-            /** Update checkOut cho phòng cũ */
             $roomUsing->check_out = Carbon::now();
             if (!empty($roomUsing->room_change_fee)) {
                 $roomUsing->room_change_fee = $req->transferFee;
             }
 
             if (!empty($roomUsing->total_amount)) {
-                // Nếu có chi phí phát sinh thì cộng vào tổng tiền, không thì chỉ set tổng tiền cho trường total_amount
                 $roomUsing->total_amount = $req->transferFee ? ($req->transferFee + $req->total_amount) : $req->total_amount;
             }
 
             $roomUsing->save();
 
-            // Xóa mềm bản ghi room_using, sau đó tạo bản ghi room_using với id phòng mới
             $roomUsing->delete();
 
-            /** Tạo bản ghi mới room using */
             $ruNew = $this->createRoomUsingNew($req);
 
-            // Cập nhật lại checkIn | checkOut
             $this->updateRUGuest($req, $ruNew->id);
 
-            /** Update trạng thái đang ở cho phòng mới */
             $this->updateRoomStatus($req->roomIdNew);
             return $roomUsing;
         }
@@ -343,7 +337,6 @@ class OrderRoomService extends BaseService
     {
         $guest = $this->getRepresentaive($req);
         $transition = $this->findFirstTransition($guest->id);
-        // dd($transition);
         if ($transition) {
             $this->model = new RoomUsing();
             $newRoomUsing = [
