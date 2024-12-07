@@ -27,6 +27,6 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         // Cấu hình thời gian hết hạn của token
-        Passport::personalAccessTokensExpireIn(now()->addHour(3));
+        Passport::personalAccessTokensExpireIn(now()->addHour(8));
     }
 }

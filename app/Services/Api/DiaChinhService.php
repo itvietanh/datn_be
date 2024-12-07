@@ -24,7 +24,8 @@ class DiaChinhService extends BaseService
         $this->model = new Provinces();
         $data = $this->getList($req, $coulumn, function ($query) use ($searchParams) {
             if (!empty($searchParams->q)) {
-                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . strtolower($searchParams->q) . '%']);
+                $q = mb_strtolower(trim($searchParams->q), 'UTF-8');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . $q . '%']);
             }
 
             if (!empty($searchParams->values)) {
@@ -37,7 +38,7 @@ class DiaChinhService extends BaseService
     public function getDistrictsByProvince(Request $req)
     {
         $coulumn = ['code as value', 'name', 'full_name as label'];
-        $searchParams = (object) $req->only(['diaChinhChaId', 'values']);
+        $searchParams = (object) $req->only(['diaChinhChaId', 'values', 'q']);
 
         $this->model = new Districts();
         $data = $this->getList($req, $coulumn, function ($query) use ($searchParams) {
@@ -50,7 +51,8 @@ class DiaChinhService extends BaseService
             }
 
             if (!empty($searchParams->q)) {
-                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . strtolower($searchParams->q) . '%']);
+                $q = mb_strtolower(trim($searchParams->q), 'UTF-8');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . $q . '%']);
             }
         }, true);
         return $data;
@@ -59,7 +61,7 @@ class DiaChinhService extends BaseService
     public function getWardsByDistrict(Request $req)
     {
         $coulumn = ['code as value', 'name', 'full_name as label'];
-        $searchParams = (object) $req->only(['diaChinhChaId', 'values']);
+        $searchParams = (object) $req->only(['diaChinhChaId', 'values', 'q']);
         $this->model = new Wards();
         $data = $this->getList($req, $coulumn, function ($query) use ($searchParams) {
             if (!empty($searchParams->values)) {
@@ -71,7 +73,8 @@ class DiaChinhService extends BaseService
             }
 
             if (!empty($searchParams->q)) {
-                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . strtolower($searchParams->q) . '%']);
+                $q = mb_strtolower(trim($searchParams->q), 'UTF-8');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . $q . '%']);
             }
         }, true);
         return $data;

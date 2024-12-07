@@ -85,6 +85,16 @@ class BaseService
         return $data;
     }
 
+    public function responseError($message = "", $code = null)
+    {
+        return response()->json([
+            'code' => 'NOT_FOUND',
+            'errors' => [
+                'message' => $message ? $message : "Đã có lỗi xảy ra, vui lòng thử lại!"
+            ]
+        ], $code ? $code : 500);
+    }
+
     public function getOneQueryBuilder($query)
     {
         return $query->first();

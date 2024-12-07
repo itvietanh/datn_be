@@ -8,7 +8,9 @@ use App\Models\Room;
 use App\Models\RoomUsing;
 use App\Models\RoomUsingService;
 use App\Models\Service;
+use App\Models\Transition;
 use App\RoomStatusEnum;
+use App\PaymentStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -111,6 +113,9 @@ class RoomController extends BaseController
         $params = (object) $req->all();
         $room = Room::where('uuid', $params->uuid)->first();
         $ru = RoomUsing::where('room_id', $room->id)->first();
+        $trans = Transition::where('id', $ru->trans_id)->first();
+        $rus = RoomUsingService::where('room_using_id', $ru->id)->first();
+
         if ($ru->id) {
             $rus = RoomUsingService::where('room_using_id', $ru->id)->first();
         }
@@ -127,6 +132,10 @@ class RoomController extends BaseController
         if ($room) {
             $room->status = RoomStatusEnum::CAN_DON->value;
             $ru->total_amount = $params->total_amount;
+            $trans->payment_status = PaymentStatusEnum::DA_THANH_TOAN->value;
+            $rus->status = PaymentStatusEnum::DA_THANH_TOAN->value;
+            $rus->save();
+            $trans->save();
             $ru->save();
             $ru->delete();
             $room->save();

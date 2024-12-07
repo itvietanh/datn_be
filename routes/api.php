@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\HomeHotelController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\RoomtypeStatisticsController;
+use App\Http\Controllers\Api\BookingController;
 
 Route::group([
     'prefix' => 'system',
@@ -238,6 +239,13 @@ Route::group([
             });
         });
 
+        /**Đặt phòng trước */
+        Route::group([
+            'prefix' => 'booking-room'
+        ], function () {
+            Route::get('get-list', [BookingController::class, 'getListBookingRoom']);
+        });
+
         /** Lịch sử đặt phòng */
         Route::group([
             'prefix' => 'order-history'
@@ -351,7 +359,6 @@ Route::group([
             Route::post('', [PaymentController::class, 'payWithMoMo'])->name('payment');
             Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
             Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
-
         });
     });
 });

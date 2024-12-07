@@ -52,7 +52,7 @@ class OrderRoomController extends BaseController
     public function handleSearchRooms(Request $req)
     {
         $data = $this->service->searchRoomsAvailable($req);
-        return $data ? $this->getPaging($data) : $this->oneResponse($data);
+        return $data ? $this->getPaging($data) : $this->responseError("Không còn đủ phòng cho số lượng khách là: " . $req->totalGuest . ' Khách');
     }
 
     public function importDataGuest(Request $req)

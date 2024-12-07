@@ -137,7 +137,9 @@ class TransitionStatisticsController extends BaseController
 
             $transactions = DB::table('room_using')
                 ->select(DB::raw('DATE(check_in) as date'), DB::raw('SUM(total_amount) as total_amount'))
-                ->whereBetween('check_in', [$start_date, $end_date])
+                ->join('transition', 'transition.id', '=', 'room_using.trans_id')
+                ->whereBetween('room_using.check_in', [$start_date, $end_date])
+                ->where('transition.payment_status', '=', 2)
                 ->groupBy('date')
                 ->orderBy('date', 'desc')
                 ->get();

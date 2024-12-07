@@ -7,6 +7,7 @@ use App\Models\Transition;
 use App\Models\RoomUsing;
 use App\Models\RoomUsingGuest;
 use App\Models\RoomUsingService;
+use Illuminate\Support\Facades\DB;
 
 class OrderHistoryService extends BaseService
 {
@@ -20,11 +21,13 @@ class OrderHistoryService extends BaseService
     {
         $column = [
             "g.name",
-            "r.room_number",
+            DB::raw("CONCAT('Phòng số ', r.room_number) as room_number"),
             "rug.check_in",
             "rug.check_out",
             "s.service_name",
-            "ru.deleted_at"
+            "ru.deleted_at",
+            "ru.total_amount",
+            "t.payment_status"
         ];
 
         $searchParams = $req->all();
@@ -36,7 +39,8 @@ class OrderHistoryService extends BaseService
                 ->join('room_using_guest as rug', 'rug.room_using_id', '=', 'ru.id')
                 ->leftJoin('room_using_service as rus', 'rus.room_using_id', '=', 'ru.id')
                 ->join('guest as g', 'g.id', '=', 'rug.guest_id')
-                ->leftJoin('service as s', 's.id', '=', 'rus.service_id');
+                ->leftJoin('service as s', 's.id', '=', 'rus.service_id')
+                ->leftJoin('transition as t', 't.id', 'ru.trans_id');
 
             if (isset($searchParams->guest_id)) {
                 $query->where('g.id', '=', $searchParams->guest_id);

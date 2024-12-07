@@ -396,54 +396,82 @@ class OrderRoomService extends BaseService
 
         $data = $this->getAvailableRoomsQuery($req);
 
-        $data->getCollection()->transform(function ($value) use ($check_in, $check_out) {
-            // Tính giá phòng cho từng phòng
-            $priceData = $this->calculateRoomPrice($value->id, $check_in, $check_out);
+        $totalAvailableCapacity = 0;
 
-            // Gộp priceData vào từng phần tử dữ liệu
-            return (object) array_merge((array) $value, (array) $priceData);
-        });
+        $data->setCollection(
+            $data->getCollection()->map(function ($value) use ($check_in, $check_out, &$totalAvailableCapacity) {
+                $priceData = $this->calculateRoomPrice($value->id, $check_in, $check_out);
 
-        return $data;
+                foreach ($priceData as $key => $price) {
+                    if (is_scalar($price)) {
+                        $value->$key = $price;
+                    }
+                }
+                $totalAvailableCapacity += $value->availablecapacity ?? 0;
+
+                return $value;
+            })
+        );
+
+        if ($totalAvailableCapacity >= $req->totalGuest) {
+            return $data;
+        }
+
+        return [];
     }
+
 
 
     private function getAvailableRoomsQuery($req)
     {
-        $this->model = new RoomType();
-        $columns = [
-            'rt.id',
-            'rt.type_name AS typeName',
-            'rt.number_of_people AS numberOfPeople',
-            'rt.price_per_hour AS pricePerHour',
-            'rt.price_overtime AS priceOvertime',
-            'rt.price_per_day AS pricePerDay',
-            DB::raw('COUNT(CASE WHEN r.status = 1 THEN r.id END) AS phongTrong'),
-            DB::raw('COUNT(CASE WHEN r.status = 2 THEN r.id END) AS dangO'),
-            DB::raw('COUNT(r.id) AS totalRooms'),
-            DB::raw('SUM(rt.number_of_people) AS totalCapacity'),
-            DB::raw('SUM(rt.number_of_people) - COALESCE(SUM(b.guest_count), 0) AS availableCapacity')
-        ];
+        // Chuyển đổi thời gian check-in và check-out
+        $check_in = $this->convertLongToTimestamp($req->checkIn);
+        $check_out = $this->convertLongToTimestamp($req->checkOut);
 
-        // Chuyển đổi timestamp nếu cần
-        $req->checkIn = $this->convertLongToTimestamp($req->checkIn);
-        $req->checkOut = $this->convertLongToTimestamp($req->checkOut);
+        // Truy vấn booking_summary (tổng số khách cho mỗi room_type trong thời gian đã cho)
+        $bookingSummary = DB::table('bookings as b')
+            ->select('b.room_type_id', DB::raw('SUM(b.guest_count) AS guesttotal'))
+            ->where('b.check_in', '>=', $check_in)
+            ->where('b.check_out', '<=', $check_out)
+            ->groupBy('b.room_type_id');
 
-        $data = $this->getList($req, $columns, function ($query) use ($req) {
-            // Join các bảng
-            $query->from('room_type as rt')
-                ->join('room as r', 'r.room_type_id', '=', 'rt.id')
-                ->leftJoin('bookings as b', function ($join) use ($req) {
-                    $join->on('b.room_type_id', '=', 'rt.id')
-                        ->where('b.check_in', '>=', $req->checkIn)
-                        ->where('b.check_out', '<=', $req->checkOut);
-                });
-            // Thêm điều kiện lọc
-            $query->groupBy('rt.id', 'rt.type_name', 'rt.number_of_people', 'rt.price_per_hour', 'rt.price_overtime', 'rt.price_per_day')
-                ->havingRaw('SUM(rt.number_of_people) - COALESCE(SUM(b.guest_count), 0) >= ?', [$req->totalGuest]);
-        });
+        // Truy vấn room_type kết hợp với thông tin từ booking_summary
+        $query = DB::table('room_type as rt')
+            ->join('room as r', 'r.room_type_id', '=', 'rt.id')
+            ->leftJoinSub($bookingSummary, 'bs', function ($join) {
+                $join->on('bs.room_type_id', '=', 'rt.id');
+            })
+            ->select(
+                'rt.id AS id',
+                'rt.type_name AS typeName',
+                'rt.number_of_people AS numberOfPeople',
+                'rt.price_per_hour AS pricePerHour',
+                'rt.price_overtime AS priceOvertime',
+                'rt.price_per_day AS pricePerDay',
+                DB::raw('COUNT(CASE WHEN r.status = 1 THEN r.id END) AS phongTrong'),
+                DB::raw('COUNT(CASE WHEN r.status = 2 THEN r.id END) AS dangO'),
+                DB::raw('COUNT(r.id) AS totalRooms'),
+                DB::raw('COUNT(CASE WHEN r.status = 1 THEN r.id END) * rt.number_of_people AS totalCapacity'),
+                DB::raw('COALESCE(bs.guesttotal, 0) AS guestTotal'),
+                DB::raw('COUNT(CASE WHEN r.status = 1 THEN r.id END) * rt.number_of_people - COALESCE(bs.guesttotal, 0) AS availableCapacity')
+            )
+            ->groupBy(
+                'rt.id',
+                'rt.type_name',
+                'rt.number_of_people',
+                'rt.price_per_hour',
+                'rt.price_overtime',
+                'rt.price_per_day',
+                'bs.guesttotal'
+            );
+
+        // Pagination logic
+        $perPage = $req->perPage > 0 ? $req->perPage : 15;
+        $data = $query->paginate($perPage); // Use `paginate` directly on the query builder
+
         return $data;
     }
+
 
     public function calculateRoomPrice($roomTypeId, $checkInParam, $checkOutParam)
     {
