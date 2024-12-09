@@ -11,7 +11,6 @@ class Booking extends Model
     protected $table = 'bookings';
     protected $fillable = [
         'id',
-        'room_type_id',
         'mo_ta',
         'guest_count',
         'check_in',
@@ -23,6 +22,9 @@ class Booking extends Model
         'room_using_id',
         'group_name',
         'room_quantity',
-        'order_date'
+        'order_date',
+        'total_amount',
+        'contract_type',
+        'data_guest_id'
     ];
 }

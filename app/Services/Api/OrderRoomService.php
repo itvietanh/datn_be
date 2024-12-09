@@ -417,18 +417,16 @@ class OrderRoomService extends BaseService
 
     private function getAvailableRoomsQuery($req)
     {
-        // Chuyển đổi thời gian check-in và check-out
         $check_in = $this->convertLongToTimestamp($req->checkIn);
         $check_out = $this->convertLongToTimestamp($req->checkOut);
 
-        // Truy vấn booking_summary (tổng số khách cho mỗi room_type trong thời gian đã cho)
-        $bookingSummary = DB::table('bookings as b')
-            ->select('b.room_type_id', DB::raw('SUM(b.guest_count) AS guesttotal'))
+        $bookingSummary = DB::table('bookings_details as bd')
+            ->select('bd.room_type_id', DB::raw('SUM(b.guest_count) AS guesttotal')) // Sử dụng guesttotal (chữ thường)
+            ->join('bookings as b', 'b.id', '=', 'bd.booking_id')
             ->where('b.check_in', '>=', $check_in)
             ->where('b.check_out', '<=', $check_out)
-            ->groupBy('b.room_type_id');
+            ->groupBy('bd.room_type_id');
 
-        // Truy vấn room_type kết hợp với thông tin từ booking_summary
         $query = DB::table('room_type as rt')
             ->join('room as r', 'r.room_type_id', '=', 'rt.id')
             ->leftJoinSub($bookingSummary, 'bs', function ($join) {
@@ -445,8 +443,8 @@ class OrderRoomService extends BaseService
                 DB::raw('COUNT(CASE WHEN r.status = 2 THEN r.id END) AS dangO'),
                 DB::raw('COUNT(r.id) AS totalRooms'),
                 DB::raw('COUNT(CASE WHEN r.status = 1 THEN r.id END) * rt.number_of_people AS totalCapacity'),
-                DB::raw('COALESCE(bs.guesttotal, 0) AS guestTotal'),
-                DB::raw('COUNT(CASE WHEN r.status = 1 THEN r.id END) * rt.number_of_people - COALESCE(bs.guesttotal, 0) AS availableCapacity')
+                DB::raw('COALESCE(bs.guesttotal, 0) AS guesttotal'),
+                DB::raw('COUNT(CASE WHEN r.status = 1 THEN r.id END) * rt.number_of_people - COALESCE(bs.guesttotal, 0) AS availableCapacity') // Sử dụng guesttotal (chữ thường)
             )
             ->groupBy(
                 'rt.id',
@@ -458,9 +456,8 @@ class OrderRoomService extends BaseService
                 'bs.guesttotal'
             );
 
-        // Pagination logic
         $perPage = $req->perPage > 0 ? $req->perPage : 15;
-        $data = $query->paginate($perPage); // Use `paginate` directly on the query builder
+        $data = $query->paginate($perPage);
 
         return $data;
     }

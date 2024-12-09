@@ -3,6 +3,7 @@
 namespace App\Services\Api;
 
 use App\Models\Booking;
+use App\Models\BookingDetail;
 use App\Services\BaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,23 +26,27 @@ class BookingRoomService extends BaseService
 
     public function handleOrderRoom(Request $req)
     {
-        $guestId = [];
-        $transId = [];
-        $roomUsingId = [];
+        DB::beginTransaction();
 
-        if (!empty($req->guests)) {
-            $guest = $req->guests;
-            foreach ($guest as $item) {
-                $this->model = new Guest();
-                $guestId[] = $this->create($item);
+        try {
+            $guestId = [];
+            $bookingsId = [];
+
+            if (!empty($req->guests)) {
+                $guest = $req->guests;
+                foreach ($guest as $item) {
+                    $this->model = new Guest();
+                    $guestId[] = $this->create($item);
+                }
             }
-        }
 
-        if (!empty($req->bookings)) {
-            $listRoomTypeId = $req->listRoomTypeId;
-            foreach ($listRoomTypeId as $rtId) {
+            $bookings = $req->bookings;
+            $bookings['data_guest_id'] = implode(',', array_map(function ($value) {
+                return $value->id;
+            }, $guestId));
+
+            if (!empty($req->bookings)) {
                 $transitionDateTime = $this->convertLongToTimestamp($req->bookings['order_date']);
-                $bookings = $req->bookings;
                 foreach ($guestId as $value) {
                     if ($value->representative === true) {
                         $bookings['representative_id'] = $value->id;
@@ -49,78 +54,35 @@ class BookingRoomService extends BaseService
                 }
                 $bookings['check_in'] = $this->convertLongToTimestamp($req->bookings['check_in']);
                 $bookings['check_out'] = $this->convertLongToTimestamp($req->bookings['check_out']);
-                $bookings['room_type_id'] = $rtId;
-                // dd($transitionDateTime);
                 $bookings['order_date'] = $transitionDateTime;
                 $this->model = new Booking();
-                $transId = $this->create($bookings);
-            }
-        }
+                $bookingsId = $this->create($bookings);
 
-        if (!empty($req->transition)) {
-            $transitionDateTime = $this->convertLongToTimestamp($req->transition['transition_date']);
-            $transition = $req->transition;
-            foreach ($guestId as $value) {
-                if ($value->representative === true) {
-                    $transition['guest_id'] = $value->id;
+                $bookingDetail = $req->bookingDetail;
+                foreach ($bookingDetail as $detail) {
+                    $this->model = new BookingDetail();
+                    $bookingDetail['booking_id'] = $bookingsId->id;
+                    $bookingDetail['room_type_id'] = $detail['room_type_id'];
+                    $bookingDetail['quantity'] = $detail['quantity'];
+                    $this->create($bookingDetail);
                 }
             }
-            $transition['transition_date'] = $transitionDateTime;
-            $this->model = new Transition();
-            $transId = $this->create($transition);
-        }
 
-        if (!empty($req->roomUsing)) {
-            $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
-            $roomUsing = $req->roomUsing;
-            $roomUsing['trans_id'] = $transId->id;
-            $roomUsing['check_in'] = $checkIn;
-            $this->model = new RoomUsing();
-            $roomUsingId = $this->create($roomUsing);
-        }
+            DB::commit();
 
-        if (!empty($req->roomUsingGuest)) {
-            $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
-            $checkOut = null;
-            if ($req->roomUsingGuest['check_out']) {
-                $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
-            }
-            $roomUsingGuest = $req->roomUsingGuest;
-            foreach ($guestId as $value) {
-                $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
-                $roomUsingGuest['guest_id'] = $value->id;
-                $roomUsingGuest['room_using_id'] = $roomUsingId->id;
-                $roomUsingGuest['check_in'] = $checkIn;
-                if ($checkOut) {
-                    $roomUsingGuest['check_out'] = $checkOut;
-                }
-                $this->model = new RoomUsingGuest();
-                $this->create($roomUsingGuest);
-            }
+            return response()->json(['message' => 'Success', 'data' => $req->all()]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->responseError($e->getMessage());
         }
-
-        if (!empty($req->roomUsingService)) {
-            $roomUsingService = $req->roomUsingService;
-            $this->model = new RoomUsingService();
-            $this->create($roomUsingService);
-        }
-
-        if (!empty($req->roomUsing['room_id'])) {
-            $this->model = new Room();
-            $params = [
-                "status" => RoomStatusEnum::DANG_O->value
-            ];
-            $this->update($req->roomUsing['room_id'], $params);
-        }
-
-        return $req->all();
     }
+
 
     public function getBookingList(Request $request)
     {
         $query = DB::table('bookings as b')
             ->select(
-                'rt.type_name as typeName',
+                'b.id',
                 'r.room_number as roomNumber',
                 'g.name as guestName',
                 'b.order_date as orderDate',
@@ -132,8 +94,8 @@ class BookingRoomService extends BaseService
                 'b.group_name as groupName',
                 'b.status'
             )
-            ->join('bookings_details as bd', 'bd.booking_id', '=', 'b.id')
-            ->join('room_type as rt', 'rt.id', '=', 'bd.room_type_id')
+            // ->join('bookings_details as bd', 'bd.booking_id', '=', 'b.id')
+            // ->join('room_type as rt', 'rt.id', '=', 'bd.room_type_id')
             ->leftJoin('room_using as ru', 'ru.id', '=', 'b.room_using_id')
             ->leftJoin('room as r', 'r.id', '=', 'ru.room_id')
             ->leftJoin('guest as g', 'g.id', '=', 'b.representative_id');
@@ -157,5 +119,29 @@ class BookingRoomService extends BaseService
         }
 
         return $this->getListQueryBuilder($request, $query);
+    }
+
+    public function getBookingRoom(Request $request)
+    {
+        $query = DB::table('bookings as b')
+            ->select(
+                'b.check_in as checkIn',
+                'b.check_out as checkOut',
+                'b.note',
+                'b.group_name as groupName',
+                'b.representative_id as representativeId',
+                'b.contract_type as contractType',
+                'g.uuid',
+                'g.name',
+                'g.phone_number as phoneNumber',
+                'g.province_id as provinceId',
+                'g.district_id as districtId',
+                'g.ward_id as wardId'
+            )
+            ->join('guest as g', 'b.representative_id', '=', 'g.id')
+            ->where('g.representative', '=', true)
+            ->where('b.id', '=', $request->id);
+
+        return $this->getOneQueryBuilder($query);
     }
 }
