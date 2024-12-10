@@ -8,14 +8,7 @@ use App\Services\BaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Guest;
-use App\Models\RoomType;
-use App\Models\Transition;
-use App\Models\RoomUsing;
-use App\Models\RoomUsingGuest;
-use App\Models\RoomUsingService;
-use App\Models\Room;
-use Ramsey\Uuid\Uuid;
-use App\RoomStatusEnum;
+use App\Models\BookingGuest;
 
 class BookingRoomService extends BaseService
 {
@@ -41,10 +34,6 @@ class BookingRoomService extends BaseService
             }
 
             $bookings = $req->bookings;
-            $bookings['data_guest_id'] = implode(',', array_map(function ($value) {
-                return $value->id;
-            }, $guestId));
-
             if (!empty($req->bookings)) {
                 $transitionDateTime = $this->convertLongToTimestamp($req->bookings['order_date']);
                 foreach ($guestId as $value) {
@@ -65,6 +54,15 @@ class BookingRoomService extends BaseService
                     $bookingDetail['room_type_id'] = $detail['room_type_id'];
                     $bookingDetail['quantity'] = $detail['quantity'];
                     $this->create($bookingDetail);
+                }
+
+                foreach ($guestId as $value) {
+                    $this->model = new BookingGuest();
+                    $bookingGuestData = [
+                        'booking_id' => $bookingsId->id,
+                        'guest_id' => $value->id,
+                    ];
+                    $this->create($bookingGuestData);
                 }
             }
 
@@ -143,5 +141,38 @@ class BookingRoomService extends BaseService
             ->where('b.id', '=', $request->id);
 
         return $this->getOneQueryBuilder($query);
+    }
+
+    public function getGuestInBooking($req)
+    {
+        $query = DB::table('bookings as b')
+            ->select("g.*")
+            ->join('booking_guest as bg', 'b.id', 'bg.booking_id')
+            ->join('guest as g', 'g.id', 'bg.guest_id')
+            ->where('b.id', $req->id);
+
+        return $this->getListQueryBuilder($req, $query);
+    }
+
+    public function getRoomType($req)
+    {
+        $query = DB::table('bookings as b')
+            ->select(
+                'rt.id as rtId',
+                'rt.uuid as rtUuid',
+                'r.uuid as rUuid',
+                'b.status',
+                'rt.type_name as roomTypeName',
+                DB::raw('COALESCE(r.room_number, NULL) as roomNumber')
+            )
+            ->leftJoin('bookings_details as bd', 'b.id', '=', 'bd.booking_id')
+            ->leftJoin('room_type as rt', 'bd.room_type_id', '=', 'rt.id')
+            ->leftJoin('room_using as ru', function ($join) {
+                $join->on('b.room_using_id', '=', 'ru.id')
+                    ->whereNotNull('ru.check_in');
+            })
+            ->leftJoin('room as r', 'ru.room_id', '=', 'r.id');
+
+        return $this->getListQueryBuilder($req, $query);
     }
 }

@@ -246,6 +246,8 @@ Route::group([
             Route::get('get-list', [BookingController::class, 'getListBookingRoom']);
             Route::get('get', [BookingController::class, 'getBookingRoom']);
             Route::post('', [BookingController::class, 'store']);
+            Route::get('get-list-guest', [BookingController::class, 'getListGuest']);
+            Route::get('get-room-type', [BookingController::class, 'getListRoomType']);
         });
 
         /** Lịch sử đặt phòng */
