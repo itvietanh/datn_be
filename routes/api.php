@@ -366,4 +366,25 @@ Route::group([
         Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
         Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
     });
+
+    Route::group([
+        'prefix' => 'role'
+    ], function () {
+
+        Route::get('get-list', [RoleController::class, 'index']);
+        Route::post('', [RoleController::class, 'store']);
+        Route::get('', [RoleController::class, 'show']);
+        Route::put('{uuid}', [RoleController::class, 'update']);
+        Route::delete('{uuid}', [RoleController::class, 'destroy']);
+    });
+    Route::group([
+        'prefix' => 'employee-role'
+    ], function () {
+
+        Route::get('get-list', [EmployeeRoleController::class, 'index']);
+        Route::post('', [EmployeeRoleController::class, 'store']);
+        Route::get('', [EmployeeRoleController::class, 'show']);
+        Route::put('{id}', [EmployeeRoleController::class, 'update']);
+        Route::delete('{id}', [EmployeeRoleController::class, 'destroy']);
+    });
 });
