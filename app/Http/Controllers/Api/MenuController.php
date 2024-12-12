@@ -59,6 +59,7 @@ class MenuController extends BaseController
             if (isset($searchParams->hotel_id)) {
                 $query->where('hotel_id', 'LIKE', '%' . $searchParams->hotel_id . '%');
             }
+            $query->orderBy('idx', 'asc');
         });
         return $this->getPaging($data);
     }

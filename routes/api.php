@@ -226,6 +226,7 @@ Route::group([
             Route::post('', [OrderRoomController::class, 'store']);
             Route::put('', [OrderRoomController::class, 'update']);
             Route::post('calculator', [OrderRoomController::class, 'calulatorPrice']);
+            Route::post('calculator-by-type', [OrderRoomController::class, 'calulatorPriceByType']);
             Route::get('over-time', [OrderRoomController::class, 'handleOverTime']);
             // Route::post('search-rooms', [OrderRoomController::class, 'searchRooms']);
             Route::post('room-change-fee', [OrderRoomController::class, 'handleRoomChange']);
@@ -246,6 +247,7 @@ Route::group([
             Route::get('get-list', [BookingController::class, 'getListBookingRoom']);
             Route::get('get', [BookingController::class, 'getBookingRoom']);
             Route::post('', [BookingController::class, 'store']);
+            Route::post('order', [BookingController::class, 'order']);
             Route::get('get-list-guest', [BookingController::class, 'getListGuest']);
             Route::get('get-room-type', [BookingController::class, 'getListRoomType']);
         });
@@ -347,22 +349,21 @@ Route::group([
             Route::put('{uuid}', [PaymentMethodController::class, 'update']);
             Route::delete('{uuid}', [PaymentMethodController::class, 'destroy']);
         });
+    });
+    // Thanh toán MoMo
+    Route::group([
+        'prefix' => 'payment-momo'
+    ], function () {
+        // // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
+        // // Gửi yêu cầu thanh toán tới MoMo
+        // Route::post('', [PaymentController::class, 'createPayment']);
+        // Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
+        // // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
+        // Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
 
-        // Thanh toán MoMo
-        Route::group([
-            'prefix' => 'payment-momo'
-        ], function () {
-            // // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
-            // // Gửi yêu cầu thanh toán tới MoMo
-            // Route::post('', [PaymentController::class, 'createPayment']);
-            // Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
-            // // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
-            // Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
 
-
-            Route::post('', [PaymentController::class, 'payWithMoMo'])->name('payment');
-            Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
-            Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
-        });
+        Route::post('', [PaymentController::class, 'payWithMoMo'])->name('payment');
+        Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
+        Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
     });
 });

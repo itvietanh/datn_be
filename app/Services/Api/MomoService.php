@@ -82,7 +82,7 @@ class MomoService
         $secretKey = env('MOMO_SECRET_KEY');
 
         $requestId = time() . "";
-        $requestType = "captureWallet";
+        $requestType = "payWithATM";
         $extraData = ""; // Custom data
 
         $rawHash = "accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType";

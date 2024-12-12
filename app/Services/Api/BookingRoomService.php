@@ -9,6 +9,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Guest;
 use App\Models\BookingGuest;
+use App\Models\Room;
+use App\Models\RoomUsing;
+use App\Models\RoomUsingGuest;
+use App\Models\Transition;
+use App\RoomStatusEnum;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
+use Ramsey\Uuid\Uuid;
 
 class BookingRoomService extends BaseService
 {
@@ -75,6 +84,83 @@ class BookingRoomService extends BaseService
         }
     }
 
+    public function OrderRoom(Request $req)
+    {
+        DB::beginTransaction();
+        $guestId = [];
+        $transId = [];
+        $roomUsingId = [];
+
+        $guest = Guest::where('uuid', $req->guests['uuid']);
+        $guestId = $guest;
+
+        try {
+            if (!empty($req->transition)) {
+                $transitionDateTime = $this->convertLongToTimestamp($req->transition['transition_date']);
+                $transition = $req->transition;
+                foreach ($guestId as $value) {
+                    if ($value->representative === true) {
+                        $transition['guest_id'] = $value->id;
+                    }
+                }
+                $transition['transition_date'] = $transitionDateTime;
+                $this->model = new Transition();
+                $transId = $this->create($transition);
+            }
+
+            if (!empty($req->roomUsing)) {
+                $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
+                $roomUsing = $req->roomUsing;
+                $roomUsing['trans_id'] = $transId->id;
+                $roomUsing['check_in'] = $checkIn;
+                $this->model = new RoomUsing();
+                $roomUsingId = $this->create($roomUsing);
+            }
+
+            if (!empty($req->roomUsingGuest)) {
+                $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
+                $checkOut = null;
+                if ($req->roomUsingGuest['check_out']) {
+                    $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
+                }
+                $roomUsingGuest = $req->roomUsingGuest;
+                foreach ($guestId as $value) {
+                    $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
+                    $roomUsingGuest['guest_id'] = $value->id;
+                    $roomUsingGuest['room_using_id'] = $roomUsingId->id;
+                    $roomUsingGuest['check_in'] = $checkIn;
+                    if ($checkOut) {
+                        $roomUsingGuest['check_out'] = $checkOut;
+                    }
+                    $this->model = new RoomUsingGuest();
+                    $this->create($roomUsingGuest);
+                    $bookingGuest = BookingGuest::where('guest_id', $guest[0]['id']);
+                    $bookingGuest->status = 1;
+                    $bookingGuest->save();
+                }
+            }
+
+            if (!empty($req->roomUsingService)) {
+                $roomUsingService = $req->roomUsingService;
+                $this->model = new RoomUsingService();
+                $this->create($roomUsingService);
+            }
+
+            if (!empty($req->roomUsing['room_id'])) {
+                $this->model = new Room();
+                $params = [
+                    "status" => RoomStatusEnum::DANG_O->value
+                ];
+                $this->update($req->roomUsing['room_id'], $params);
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->responseError($e->getMessage());
+        }
+
+        return $req->all();
+    }
 
     public function getBookingList(Request $request)
     {
@@ -149,30 +235,74 @@ class BookingRoomService extends BaseService
             ->select("g.*")
             ->join('booking_guest as bg', 'b.id', 'bg.booking_id')
             ->join('guest as g', 'g.id', 'bg.guest_id')
-            ->where('b.id', $req->id);
+            ->where('b.id', $req->id)
+            ->whereNull('bg.status');
 
         return $this->getListQueryBuilder($req, $query);
     }
 
-    public function getRoomType($req)
-    {
-        $query = DB::table('bookings as b')
-            ->select(
-                'rt.id as rtId',
-                'rt.uuid as rtUuid',
-                'r.uuid as rUuid',
-                'b.status',
-                'rt.type_name as roomTypeName',
-                DB::raw('COALESCE(r.room_number, NULL) as roomNumber')
-            )
-            ->leftJoin('bookings_details as bd', 'b.id', '=', 'bd.booking_id')
-            ->leftJoin('room_type as rt', 'bd.room_type_id', '=', 'rt.id')
-            ->leftJoin('room_using as ru', function ($join) {
-                $join->on('b.room_using_id', '=', 'ru.id')
-                    ->whereNotNull('ru.check_in');
-            })
-            ->leftJoin('room as r', 'ru.room_id', '=', 'r.id');
 
-        return $this->getListQueryBuilder($req, $query);
+    public function getRoomType(Request $request)
+    {
+        // Ngày bắt đầu và kết thúc (lấy từ request hoặc mặc định)
+        $startDate = $request->startDate;
+        $endDate = $request->endDate;
+        $bookingId = $request->bookingId;
+
+        // Tạo truy vấn danh sách phòng với CTE (Common Table Expression)
+        $query = "
+        WITH available_rooms AS (
+            SELECT
+                r.id AS room_id,
+                r.room_number,
+                r.room_type_id,
+                r.status,
+                ru.check_in,
+                ru.check_out
+            FROM
+                room r
+            LEFT JOIN room_using ru ON r.id = ru.room_id
+            WHERE
+                r.status = 1
+                OR (
+                    r.status = 2
+                    AND (
+                        ru.check_out IS NULL
+                        OR (
+                            ru.check_in NOT BETWEEN ? AND ?
+                            OR ru.check_out NOT BETWEEN ? AND ?
+                        )
+                    )
+                )
+        )
+        SELECT
+            ar.room_id,
+            CONCAT('Phòng ', ar.room_number) AS roomNumber,
+            rt.type_name as typeName,
+            ar.room_type_id
+        FROM
+            available_rooms ar
+        JOIN bookings_details bd ON ar.room_type_id = bd.room_type_id
+        LEFT JOIN room_type rt on ar.room_type_id = rt.id
+        WHERE
+            bd.booking_id = ?
+        GROUP BY
+            ar.room_id, ar.room_number, ar.room_type_id, bd.quantity, rt.type_name
+        ORDER BY
+            ar.room_type_id, ar.room_number
+        ";
+
+        $rooms = DB::select($query, [$startDate, $endDate, $startDate, $endDate, $bookingId]);
+
+        $roomsCollection = collect($rooms);
+
+        return $this->paginate($roomsCollection, $request->query('size', 20), $request->query('page', 1));
+    }
+
+    private function paginate($items, $perPage = 10, $page = null, $options = [])
+    {
+        $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+        $items = $items instanceof Collection ? $items : Collection::make($items);
+        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 }

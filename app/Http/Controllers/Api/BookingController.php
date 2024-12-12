@@ -36,6 +36,11 @@ class BookingController extends BaseController
         return $this->oneResponse($data);
     }
 
+    public function order(Request $req) {
+        $data = $this->service->OrderRoom($req);
+        return $this->oneResponse($data);
+    }
+
     public function getListGuest(Request $req)
     {
         $data = $this->service->getGuestInBooking($req);

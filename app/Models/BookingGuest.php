@@ -11,6 +11,7 @@ class BookingGuest extends Model
     protected $table = 'bookings_guest';
     protected $fillable = [
         'booking_id',
-        'guest_id'
+        'guest_id',
+        'status'
     ];
 }

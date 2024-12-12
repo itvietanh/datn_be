@@ -37,6 +37,13 @@ class OrderRoomController extends BaseController
         return $this->responseSuccess($data);
     }
 
+    public function calulatorPriceByType(Request $req)
+    {
+        $data = $this->service->calculateRoomPrice($req->roomTypeId, $req->checkIn, $req->checkOut);
+        return $this->responseSuccess($data);
+    }
+
+
     public function handleOverTime(Request $req)
     {
         $data = $this->service->updateStatusRoomOverTime($req->uuid);
