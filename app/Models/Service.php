@@ -14,4 +14,9 @@ class Service extends Model
     protected $fillable = ['uuid', 'service_name', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'service_categories_id', 'price', 'status'];
 
     public $timestamps = true;
+    public function hotel()
+{
+    return $this->belongsTo(Hotel::class, 'hotel_id','id');
+}
+
 }
