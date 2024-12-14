@@ -28,7 +28,7 @@ class RoomTypeController extends BaseController
                 $query->where('room_type.hotel_id', '=', $searchParams->hotel_id);
             }
             if (isset($searchParams->type_name)) {
-                $query->where('room_type.type_name', '=', $searchParams->floor_number);
+                $query->where('room_type.type_name', '=', $searchParams->type_name);
             }
         });
         return $this->getPaging($data);
