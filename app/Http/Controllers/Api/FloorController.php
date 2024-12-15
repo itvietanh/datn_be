@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Http\Controllers\BaseController;
 use App\Services\Api\FloorService;
+use Illuminate\Support\Facades\Log;
 
 class FloorController extends BaseController
 {
@@ -175,7 +176,16 @@ class FloorController extends BaseController
     public function destroy(Request $req)
     {
         $floor = $this->service->findFirstByUuid($req->uuid);
-        if (!$floor) $this->response404();
+        if (!$floor) {
+            return $this->response404();
+        }
+        if ($floor->rooms()->exists()) {
+            Log::warning('Không thể xóa tầng vì có phòng liên kết', ['floor_uuid' => $req->uuid]);
+
+            return response()->json([
+                'message' => 'Không thể xóa tầng vì còn phòng liên kết'
+            ], 400);
+        }
         $this->service->delete($floor->id);
         return $this->responseSuccess($floor);
     }

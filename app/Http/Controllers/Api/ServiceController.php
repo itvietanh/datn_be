@@ -22,19 +22,20 @@ class ServiceController extends BaseController
 
     public function index(Request $request)
     {
-        $columns = ['id', 'uuid', 'service_name', 'price', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+        $columns = ['id', 'uuid', 'service_name', 'price as service_price', 'created_at', 'hotel_id'];
 
-        $searchParams = (object) $request->only(['service_name', 'catId']);
+        $searchParams = $request->only(['hotel_id', 'service_name', 'service_price']);
 
         $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
-            // $query->with('hotel');
-            if (isset($searchParams->catId)) {
-                $query->where('service_categories_id', '=', $searchParams->catId);
+            $query->with('hotel');
+            if (!empty($searchParams['hotel_id'])) {
+                $query->where('hotel_id', '=', $searchParams['hotel_id']);
             }
-            if (isset($searchParams->service_name)) {
-                $query->where('service_name', '=', $searchParams->service_name);
+            if (!empty($searchParams['service_name'])) {
+                $query->where('service_name', 'LIKE', '%' . $searchParams['service_name'] . '%');
             }
         });
+
         return $this->getPaging($data);
     }
 
@@ -94,11 +95,10 @@ class ServiceController extends BaseController
     public function show(Request $req)
     {
         $service = $this->service->findFirstByUuid($req->uuid, 'hotel');
-        if (!$service) $this->response404();
+        if (!$service)
+            $this->response404();
         return $this->oneResponse($service);
     }
-
-
 
     /**
      * Update the specified resource in storage.
@@ -111,7 +111,8 @@ class ServiceController extends BaseController
             'hotel_id' => 'required|numeric'
         ]);
         $service = $this->service->findFirstByUuid($req->uuid);
-        if (!$service) $this->response404();
+        if (!$service)
+            $this->response404();
         $data = $this->service->update($service->id, $dataReq);
         return $this->responseSuccess($data);
     }
@@ -123,7 +124,8 @@ class ServiceController extends BaseController
     public function destroy(Request $req)
     {
         $service = $this->service->findFirstByUuid($req->uuid);
-        if (!$service) $this->response404();
+        if (!$service)
+            $this->response404();
         $this->service->delete($service->id);
         return $this->responseSuccess($service);
     }
