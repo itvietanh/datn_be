@@ -36,7 +36,8 @@ class BookingController extends BaseController
         return $this->oneResponse($data);
     }
 
-    public function order(Request $req) {
+    public function order(Request $req)
+    {
         $data = $this->service->OrderRoom($req);
         return $this->oneResponse($data);
     }
@@ -49,7 +50,19 @@ class BookingController extends BaseController
 
     public function getListRoomType(Request $req)
     {
-        $data = $this->service->getRoomType($req);
+        $data = $this->service->getRoomTypeList($req);
         return $this->getPaging($data);
+    }
+
+    public function getCombobox(Request $req)
+    {
+        $data = $this->service->getRoomTypeOption($req);
+
+        return $this->getPaging($data);
+    }
+
+    public function updateRoomInRoomType(Request $req)
+    {
+        return $this->oneResponse($this->service->updateRoomInRt($req));
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Guest;
 use App\Models\BookingGuest;
 use App\Models\Room;
+use App\Models\RoomType;
 use App\Models\RoomUsing;
 use App\Models\RoomUsingGuest;
 use App\Models\Transition;
@@ -33,6 +34,7 @@ class BookingRoomService extends BaseService
         try {
             $guestId = [];
             $bookingsId = [];
+            $roomUsingId = [];
 
             if (!empty($req->guests)) {
                 $guest = $req->guests;
@@ -56,15 +58,6 @@ class BookingRoomService extends BaseService
                 $this->model = new Booking();
                 $bookingsId = $this->create($bookings);
 
-                $bookingDetail = $req->bookingDetail;
-                foreach ($bookingDetail as $detail) {
-                    $this->model = new BookingDetail();
-                    $bookingDetail['booking_id'] = $bookingsId->id;
-                    $bookingDetail['room_type_id'] = $detail['room_type_id'];
-                    $bookingDetail['quantity'] = $detail['quantity'];
-                    $this->create($bookingDetail);
-                }
-
                 foreach ($guestId as $value) {
                     $this->model = new BookingGuest();
                     $bookingGuestData = [
@@ -73,6 +66,67 @@ class BookingRoomService extends BaseService
                     ];
                     $this->create($bookingGuestData);
                 }
+
+
+                $bookingDetail = $req->bookingDetail;
+                foreach ($bookingDetail as $detail) {
+                    $detail['booking_id'] = $bookingsId->id;
+                    $detail['room_type_id'] = $detail['room_type_id'];
+                    $detail['quantity'] = $detail['quantity'];
+                    $this->model = new BookingDetail();
+                    $this->create($bookingDetail);
+                }
+            }
+
+            if (!empty($req->roomUsing)) {
+                $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
+                $roomUsing = $req->roomUsing;
+
+                foreach ($bookingDetail as $detail) {
+                    $roomTypeId = $detail['room_type_id'];
+                    $quantity = $detail['quantity'];
+                    for ($i = 0; $i < $quantity; $i++) {
+                        $roomUsing['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
+                        $roomUsing['booking_id'] = $bookingsId->id;
+                        $roomUsing['check_in'] = $checkIn;
+                        $roomUsing['room_type_id'] = $roomTypeId;
+                        $this->model = new RoomUsing();
+                        $roomUsingId[] = $this->create($roomUsing);
+                    }
+                }
+            }
+
+            // if (!empty($req->roomUsingGuest)) {
+            //     $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
+            //     $checkOut = null;
+            //     if ($req->roomUsingGuest['check_out']) {
+            //         $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
+            //     }
+            //     $roomUsingGuest = $req->roomUsingGuest;
+            //     foreach ($roomUsingId as $ruValue) {
+            //         $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
+            //         $roomUsingGuest['room_using_id'] = $ruValue->id;
+            //         $roomUsingGuest['check_in'] = $checkIn;
+            //         if ($checkOut) {
+            //             $roomUsingGuest['check_out'] = $checkOut;
+            //         }
+            //         $this->model = new RoomUsingGuest();
+            //         $this->create($roomUsingGuest);
+            //     }
+            // }
+
+            if (!empty($req->roomUsingService)) {
+                $roomUsingService = $req->roomUsingService;
+                $this->model = new RoomUsingService();
+                $this->create($roomUsingService);
+            }
+
+            if (!empty($req->roomUsing['room_id'])) {
+                $this->model = new Room();
+                $params = [
+                    "status" => RoomStatusEnum::DANG_O->value
+                ];
+                $this->update($req->roomUsing['room_id'], $params);
             }
 
             DB::commit();
@@ -87,71 +141,32 @@ class BookingRoomService extends BaseService
     public function OrderRoom(Request $req)
     {
         DB::beginTransaction();
-        $guestId = [];
-        $transId = [];
-        $roomUsingId = [];
-
-        $guest = Guest::where('uuid', $req->guests['uuid']);
-        $guestId = $guest;
-
         try {
-            if (!empty($req->transition)) {
-                $transitionDateTime = $this->convertLongToTimestamp($req->transition['transition_date']);
-                $transition = $req->transition;
-                foreach ($guestId as $value) {
-                    if ($value->representative === true) {
-                        $transition['guest_id'] = $value->id;
-                    }
-                }
-                $transition['transition_date'] = $transitionDateTime;
-                $this->model = new Transition();
-                $transId = $this->create($transition);
-            }
-
-            if (!empty($req->roomUsing)) {
-                $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
-                $roomUsing = $req->roomUsing;
-                $roomUsing['trans_id'] = $transId->id;
-                $roomUsing['check_in'] = $checkIn;
-                $this->model = new RoomUsing();
-                $roomUsingId = $this->create($roomUsing);
-            }
-
             if (!empty($req->roomUsingGuest)) {
                 $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
                 $checkOut = null;
                 if ($req->roomUsingGuest['check_out']) {
                     $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
                 }
+
                 $roomUsingGuest = $req->roomUsingGuest;
-                foreach ($guestId as $value) {
-                    $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
-                    $roomUsingGuest['guest_id'] = $value->id;
-                    $roomUsingGuest['room_using_id'] = $roomUsingId->id;
-                    $roomUsingGuest['check_in'] = $checkIn;
-                    if ($checkOut) {
-                        $roomUsingGuest['check_out'] = $checkOut;
-                    }
-                    $this->model = new RoomUsingGuest();
-                    $this->create($roomUsingGuest);
-                    $bookingGuest = BookingGuest::where('guest_id', $guest[0]['id']);
+                $guest = Guest::where('uuid', $roomUsingGuest['guestUuid'])->first();
+                $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
+                $roomUsingGuest['check_in'] = $checkIn;
+                $roomUsingGuest['guest_id'] = $guest->id;
+                if ($checkOut) {
+                    $roomUsingGuest['check_out'] = $checkOut;
+                }
+                $this->model = new RoomUsingGuest();
+                $this->create($roomUsingGuest);
+
+                $bookingGuest = BookingGuest::where('guest_id', $guest->id)->first();
+                if ($bookingGuest) {
                     $bookingGuest->status = 1;
                     $bookingGuest->save();
+                } else {
+                    return $this->responseError("Không tìm thấy khách", 404);
                 }
-            }
-
-            if (!empty($req->roomUsingService)) {
-                $roomUsingService = $req->roomUsingService;
-                $this->model = new RoomUsingService();
-                $this->create($roomUsingService);
-            }
-
-            if (!empty($req->roomUsing['room_id'])) {
-                $this->model = new Room();
-                $params = [
-                    "status" => RoomStatusEnum::DANG_O->value
-                ];
-                $this->update($req->roomUsing['room_id'], $params);
             }
             DB::commit();
         } catch (\Exception $e) {
@@ -167,40 +182,16 @@ class BookingRoomService extends BaseService
         $query = DB::table('bookings as b')
             ->select(
                 'b.id',
-                'r.room_number as roomNumber',
                 'g.name as guestName',
+                'b.group_name as groupName',
                 'b.order_date as orderDate',
                 'b.check_in as checkIn',
                 'b.check_out as checkOut',
-                'b.group_name as groupName',
+                'b.status',
                 DB::raw("CONCAT(b.room_quantity, ' Phòng') as roomQuantity"),
-                DB::raw("CONCAT(b.guest_count, ' Khách') as guestCount"),
-                'b.group_name as groupName',
-                'b.status'
+                DB::raw("CONCAT(b.guest_count, ' Khách') as guestCount")
             )
-            // ->join('bookings_details as bd', 'bd.booking_id', '=', 'b.id')
-            // ->join('room_type as rt', 'rt.id', '=', 'bd.room_type_id')
-            ->leftJoin('room_using as ru', 'ru.id', '=', 'b.room_using_id')
-            ->leftJoin('room as r', 'r.id', '=', 'ru.room_id')
             ->leftJoin('guest as g', 'g.id', '=', 'b.representative_id');
-
-        if ($request->has('room_type_id')) {
-            $query->where('b.room_type_id', $request->query('room_type_id'));
-        }
-
-        // Tìm ngày đặt
-        if ($request->has('dateFrom') && $request->has('dateTo')) {
-            $query->whereBetween('b.check_in', [$request->query('dateFrom'), $request->query('dateTo')]);
-        }
-
-        // Tìm ngày trả phòng
-        if ($request->has('dateFrom') && $request->has('dateTo')) {
-            $query->whereBetween('b.check_out', [$request->query('dateFrom'), $request->query('dateTo')]);
-        }
-
-        if ($request->has('guestName')) {
-            $query->where('g.name', 'like', '%' . $request->query('guestName') . '%');
-        }
 
         return $this->getListQueryBuilder($request, $query);
     }
@@ -241,68 +232,75 @@ class BookingRoomService extends BaseService
         return $this->getListQueryBuilder($req, $query);
     }
 
-
-    public function getRoomType(Request $request)
+    public function getRoomTypeList(Request $request)
     {
-        // Ngày bắt đầu và kết thúc (lấy từ request hoặc mặc định)
-        $startDate = $request->startDate;
-        $endDate = $request->endDate;
         $bookingId = $request->bookingId;
+        $query = DB::table('bookings as b')
+            ->leftJoin('room_using as ru', 'b.id', '=', 'ru.booking_id')
+            ->leftJoin('room_type as rt', 'rt.id', '=', 'ru.room_type_id')
+            ->leftJoin('room as r', 'r.id', '=', 'ru.room_id')
+            ->select(
+                'ru.uuid as ruUuid',
+                'ru.id as ruId',
+                'rt.id',
+                'rt.type_name as typeName',
+                DB::raw("CASE WHEN ru.room_id IS NULL THEN 'Trống' ELSE CONCAT('Phòng ', r.room_number) END as roomNumber")
+            )
+            ->where('b.id', $bookingId);
 
-        // Tạo truy vấn danh sách phòng với CTE (Common Table Expression)
-        $query = "
-        WITH available_rooms AS (
-            SELECT
-                r.id AS room_id,
-                r.room_number,
-                r.room_type_id,
-                r.status,
-                ru.check_in,
-                ru.check_out
-            FROM
-                room r
-            LEFT JOIN room_using ru ON r.id = ru.room_id
-            WHERE
-                r.status = 1
-                OR (
-                    r.status = 2
-                    AND (
-                        ru.check_out IS NULL
-                        OR (
-                            ru.check_in NOT BETWEEN ? AND ?
-                            OR ru.check_out NOT BETWEEN ? AND ?
-                        )
-                    )
-                )
-        )
-        SELECT
-            ar.room_id,
-            CONCAT('Phòng ', ar.room_number) AS roomNumber,
-            rt.type_name as typeName,
-            ar.room_type_id
-        FROM
-            available_rooms ar
-        JOIN bookings_details bd ON ar.room_type_id = bd.room_type_id
-        LEFT JOIN room_type rt on ar.room_type_id = rt.id
-        WHERE
-            bd.booking_id = ?
-        GROUP BY
-            ar.room_id, ar.room_number, ar.room_type_id, bd.quantity, rt.type_name
-        ORDER BY
-            ar.room_type_id, ar.room_number
-        ";
+        $result = $this->getListQueryBuilder($request, $query);
 
-        $rooms = DB::select($query, [$startDate, $endDate, $startDate, $endDate, $bookingId]);
-
-        $roomsCollection = collect($rooms);
-
-        return $this->paginate($roomsCollection, $request->query('size', 20), $request->query('page', 1));
+        return $result;
     }
 
-    private function paginate($items, $perPage = 10, $page = null, $options = [])
+    public function updateRoomInRt(Request $req)
     {
-        $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
-        $items = $items instanceof Collection ? $items : Collection::make($items);
-        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+        // dd($req);
+        $ruId = $req->ruId;
+        $roomId = $req->roomId;
+
+        $this->model = new RoomUsing();
+        $ru = $this->find($ruId);
+        $ru->room_id = $roomId;
+        $ru->save();
+
+        $this->model = new Room();
+        $room = $this->find($roomId);
+        $room->status = RoomStatusEnum::DANG_O->value;
+        $room->save();
+        return $ru;
+    }
+
+
+    public function getRoomTypeOption(Request $req)
+    {
+        $fillable = ['id as value', 'type_name as label'];
+
+        $searchParams = (object) $req->only(['id', 'q', 'idStr']);
+
+        $this->model = new RoomType();
+
+        $data = $this->getList($req, $fillable, function ($query) use ($searchParams) {
+            if (!empty($searchParams->q)) {
+                $query->where('type_name', 'like', '%' . $searchParams->q . '%');
+            }
+
+            if (!empty($searchParams->id)) {
+                $query->where('id', '=', $searchParams->id);
+            }
+
+            if (!empty($searchParams->idStr)) {
+                $idArray = array_filter(
+                    explode(',', $searchParams->idStr),
+                    fn($id) => is_numeric($id)
+                );
+
+                if (!empty($idArray)) {
+                    $query->whereIn('id', $idArray);
+                }
+            }
+        });
+
+        return $data;
     }
 }

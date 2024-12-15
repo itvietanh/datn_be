@@ -54,7 +54,9 @@ class RoomUsing extends Model
         'updated_by',
         'room_change_fee',
         'total_amout',
-        'prepaid'
+        'prepaid',
+        'booking_id',
+        'room_type_id'
     ];
 
     public $timestamps = true;
