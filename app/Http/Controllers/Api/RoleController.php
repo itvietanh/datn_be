@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
@@ -25,6 +26,26 @@ class RoleController extends BaseController
             }
         });
 
+        return $this->getPaging($data);
+    }
+
+
+    public function getCombobox(Request $req)
+    {
+        $fillable = ['id as value', 'role_name as label'];
+
+        $searchParams = (object) $req->only(['id', 'q']);
+
+        $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
+            if (!empty($searchParams->q)) {
+                $query->where('name', 'like', '%' . $searchParams->q . '%');
+            }
+
+            if (!empty($searchParams->id)) {
+                $query->where('id', '=', $searchParams->id);
+            }
+            $query->orderBy('id', 'asc');
+        });
         return $this->getPaging($data);
     }
 
