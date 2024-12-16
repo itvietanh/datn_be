@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\RoomtypeStatisticsController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\ServiceCatgoriesController;
+use App\Http\Controllers\Api\ShiftController;
 
 Route::group([
     'prefix' => 'system',
@@ -357,10 +358,6 @@ Route::group([
     Route::group([
         'prefix' => 'payment-momo'
     ], function () {
-<<<<<<< HEAD
-
-=======
->>>>>>> 0622e4e71cda6a83755d4c6702c52ad73e70d4ea
         Route::post('', [PaymentController::class, 'payWithMoMo'])->name('payment');
         Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
         Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
@@ -393,5 +390,16 @@ Route::group([
         'prefix' => 'service-categories'
     ], function () {
         Route::get('options', [ServiceCatgoriesController::class, 'getData']);
+    });
+
+    Route::group([
+        'prefix' => 'shifts'
+    ], function () {
+        Route::get('get-list', [ShiftController::class, 'index']);
+        Route::get('options', [ShiftController::class, 'getCombobox']);
+        Route::post('', [ShiftController::class, 'store']);
+        Route::get('', [ShiftController::class, 'show']);
+        Route::put('{id}', [ShiftController::class, 'update']);
+        Route::delete('{id}', [ShiftController::class, 'destroy']);
     });
 });
