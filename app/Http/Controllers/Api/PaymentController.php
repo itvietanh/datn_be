@@ -20,72 +20,6 @@ class PaymentController extends BaseController
         $this->momoService = $momoService;
     }
 
-    //     public function createPayment(Request $request)
-    //     {
-    //         // Lấy dữ liệu từ request
-    //         $amount = $request->input('amount');
-    //         if (!$amount || $amount <= 0) {
-    //             return $this->responseError('Số tiền thanh toán không hợp lệ.', 400);
-    //         }
-
-    //         // Tạo mã đơn hàng duy nhất
-    //         $orderId = 'order_' . Str::random(10);
-    //         $orderInfo = "Thanh toán hóa đơn #" . $orderId;
-
-    //         // Gọi MoMo API để tạo yêu cầu thanh toán
-    //         $response = $this->momoService->createPayment($orderId, $amount, $orderInfo);
-
-    //         dd($response);
-
-    //         if (isset($response['payUrl'])) {
-    //             // Lưu thông tin giao dịch vào cơ sở dữ liệu
-    //             PaymentMomo::create([
-    //                 'partner_code' => env('MOMO_PARTNER_CODE'),
-    //                 'order_id' => $orderId,   // Lưu order_id vào DB
-    //                 'amount' => $amount,
-    //                 'order_info' => $orderInfo,
-    //                 'order_type' => 'captureWallet',
-    //                 'trans_id' => null,  // Chưa có mã giao dịch lúc tạo
-    //                 'pay_type' => 'momo'
-    //             ]);
-
-    //             // Trả về URL thanh toán từ MoMo API
-    //             $data = [
-    //                 'payment_url' => $response['payUrl'],
-    //             ];
-
-    //             return $this->responseSuccess($data, 'Link thanh toán được tạo thành công.');
-    //         }
-
-    //         return $this->responseError('Không thể tạo thanh toán, vui lòng thử lại.', 400);
-    //     }
-
-    //     public function handleReturn(Request $request)
-    // {
-    //     // Lấy thông tin giao dịch từ bảng payment_momo
-    //     $transaction = PaymentMomo::where('order_id', $request->orderId)->first();
-
-    //     if ($transaction) {
-    //         // Cập nhật trạng thái giao dịch dựa trên kết quả trả về từ MoMo
-    //         $status = $request->errorCode == 0 ? 'success' : 'failed';
-    //         $transaction->update([
-    //             'trans_id' => $request->transId,
-    //             'pay_type' => $request->payType ?? 'Unknown',
-    //             'status' => $status
-    //         ]);
-
-    //         return response()->json([
-    //             'order_id' => $request->orderId,
-    //             'status' => $status
-    //         ]);
-    //     }
-
-    //     return response()->json([
-    //         'message' => 'Giao dịch không tìm thấy.'
-    //     ], 404);
-    // }
-
-
     public function payWithMoMo(Request $request)
     {
         $orderId = time(); // Mã đơn hàng
@@ -97,21 +31,64 @@ class PaymentController extends BaseController
         $response = MoMoService::createPayment($orderId, $amount, $orderInfo, $redirectUrl, $ipnUrl);
 
         if (isset($response['payUrl'])) {
-
-            // return response()->json(['payUrl' => $response['payUrl']]);
             return $this->oneResponse(['payUrl' => $response['payUrl']]);
         }
 
         return response()->json(['error' => 'Payment failed!'], 500);
     }
 
+    // public function callback(Request $request)
+    // {
+    //     return view('payment.callback', ['data' => $request->all()]);
+    // }
+    // public function ipn(Request $request)
+    // {
+    //     return response()->json(['message' => 'IPN received']);
+    // }
     public function callback(Request $request)
-    {
-        return view('payment.callback', ['data' => $request->all()]);
-    }
+{
+    // Lấy dữ liệu trả về từ MoMo
+    $data = $request->all();
 
-    public function ipn(Request $request)
-    {
-        return response()->json(['message' => 'IPN received']);
+    // Kiểm tra kết quả giao dịch
+    if (isset($data['resultCode']) && $data['resultCode'] == 0) {
+        // Giao dịch thành công
+        // Cập nhật trạng thái đơn hàng trong database (ví dụ)
+        $orderId = $data['orderId'];
+        // Ví dụ: $this->updateOrderStatus($orderId, 'paid');
+
+        return view('payment.success', [
+            'message' => 'Thanh toán thành công!',
+            'data' => $data,
+        ]);
+    } else {
+        // Giao dịch thất bại hoặc bị hủy
+        return view('payment.fail', [
+            'message' => 'Thanh toán thất bại!',
+            'data' => $data,
+        ]);
     }
+}
+public function ipn(Request $request)
+{
+    $data = $request->all();
+
+    // Kiểm tra kết quả giao dịch
+    if (isset($data['resultCode']) && $data['resultCode'] == 0) {
+        // Giao dịch thành công
+        $orderId = $data['orderId'];
+        $amount = $data['amount'];
+
+        // Cập nhật trạng thái đơn hàng (ví dụ)
+        // $this->updateOrderStatus($orderId, 'paid');
+
+        return response()->json(['message' => 'IPN processed successfully'], 200);
+    } else {
+        // Giao dịch thất bại hoặc có lỗi
+        return response()->json(['message' => 'IPN failed'], 400);
+    }
+}
+
+
+
 }
