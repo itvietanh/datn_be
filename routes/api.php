@@ -399,7 +399,7 @@ Route::group([
         Route::get('options', [ShiftController::class, 'getCombobox']);
         Route::post('', [ShiftController::class, 'store']);
         Route::get('', [ShiftController::class, 'show']);
-        Route::put('{id}', [ShiftController::class, 'update']);
-        Route::delete('{id}', [ShiftController::class, 'destroy']);
+        Route::put('', [ShiftController::class, 'update']);
+        Route::delete('', [ShiftController::class, 'destroy']);
     });
 });

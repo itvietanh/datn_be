@@ -34,7 +34,7 @@ class ShiftController extends BaseController
         }
     });
 
-    return response()->json($data);
+    return $this->getPaging($data);
 }
 
 
@@ -81,30 +81,30 @@ class ShiftController extends BaseController
     /**
      * Hiển thị ca làm việc theo UUID
      */
-    public function show($uuid)
+    public function show(Request $req)
     {
         // Tìm ca làm việc theo UUID
-        $shift = Shift::where('uuid', $uuid)->first();
+        $shift = Shift::where('id', $req->id)->first();
 
         if (!$shift) {
             return response()->json(['message' => 'Ca làm việc không tồn tại'], 404);
         }
 
-        return response()->json($shift);
+        return $this->oneResponse($shift);
     }
 
     /**
      * Cập nhật ca làm việc theo UUID
      */
-    public function update(Request $request, $id)
+    public function update(Request $req)
     {
         // Xác thực dữ liệu
-        $data = $request->validate([
+        $data = $req->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:255',
             'salary' => 'required|numeric',
         ]);
-        $shift = Shift::find($id);
+        $shift = Shift::where('id', $req->id)->first();
 
         if (!$shift) {
             return response()->json(['message' => 'Ca làm việc không tồn tại'], 404);
@@ -113,16 +113,13 @@ class ShiftController extends BaseController
 
         return response()->json($shift);
     }
-
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $shift = Shift::find($id);
-
+        $shift = $this->shiftService->findFirstById($request->id); // Thay $this->service thành $this->shiftService
         if (!$shift) {
-            return response()->json(['message' => 'Ca làm việc không tồn tại'], 404);
+            return $this->response404(); // Đảm bảo hàm này được định nghĩa trong BaseController
         }
-        $shift->delete();
-
-        return response()->json([], 204);
+        $this->shiftService->delete($shift->id); // Thay $this->service thành $this->shiftService
+        return $this->responseSuccess($shift); // Đảm bảo hàm này được định nghĩa trong BaseController
     }
 }
