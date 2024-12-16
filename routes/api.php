@@ -357,10 +357,6 @@ Route::group([
     Route::group([
         'prefix' => 'payment-momo'
     ], function () {
-<<<<<<< HEAD
-
-=======
->>>>>>> 0622e4e71cda6a83755d4c6702c52ad73e70d4ea
         Route::post('', [PaymentController::class, 'payWithMoMo'])->name('payment');
         Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
         Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
