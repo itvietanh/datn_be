@@ -22,7 +22,7 @@ class ServiceController extends BaseController
 
     public function index(Request $request)
     {
-        $columns = ['id', 'uuid', 'service_name', 'price as service_price', 'created_at', 'hotel_id'];
+        $columns = ['id', 'uuid', 'service_name', 'price as service_price', 'created_at', 'hotel_id', 'service_categories_id'];
 
         $searchParams = $request->only(['hotel_id', 'service_name', 'service_price']);
 
@@ -79,13 +79,13 @@ class ServiceController extends BaseController
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'service_name' => 'required|string',
-            'service_price' => 'required|numeric',
-            'hotel_id' => 'required|numeric'
-        ]);
+        // $data = $request->validate([
+        //     'service_name' => 'required|string',
+        //     'service_price' => 'required|numeric',
+        //     'hotel_id' => 'required|numeric'
+        // ]);
 
-        $service = $this->service->create($data);
+        $service = $this->service->create($request->all());
 
         return $this->responseSuccess($service, 201);
     }

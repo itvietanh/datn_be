@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\RoomtypeStatisticsController;
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\ServiceCatgoriesController;
 
 Route::group([
     'prefix' => 'system',
@@ -379,6 +380,7 @@ Route::group([
         Route::put('{uuid}', [RoleController::class, 'update']);
         Route::delete('{uuid}', [RoleController::class, 'destroy']);
     });
+
     Route::group([
         'prefix' => 'employee-role'
     ], function () {
@@ -388,5 +390,11 @@ Route::group([
         Route::get('', [EmployeeRoleController::class, 'show']);
         Route::put('{id}', [EmployeeRoleController::class, 'update']);
         Route::delete('{id}', [EmployeeRoleController::class, 'destroy']);
+    });
+
+    Route::group([
+        'prefix' => 'service-categories'
+    ], function () {
+        Route::get('options', [ServiceCatgoriesController::class, 'getData']);
     });
 });

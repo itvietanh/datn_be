@@ -328,7 +328,7 @@ class OrderRoomService extends BaseService
             ];
 
             $roomUsingGuest = $this->update($rug->id, $dataRuGuest);
-        }
+        }  
 
         return $roomUsingGuest;
     }

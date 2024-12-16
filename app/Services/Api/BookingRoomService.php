@@ -243,6 +243,7 @@ class BookingRoomService extends BaseService
                 'ru.uuid as ruUuid',
                 'ru.id as ruId',
                 'rt.id',
+                'rt.number_of_people as numberOfPeople',
                 'rt.type_name as typeName',
                 DB::raw("CASE WHEN ru.room_id IS NULL THEN 'Trống' ELSE CONCAT('Phòng ', r.room_number) END as roomNumber")
             )

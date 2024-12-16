@@ -45,12 +45,12 @@ class AuthController extends BaseController
         if ($employee && Hash::check($credentials->password, $employee->password)) {
             // Tạo token cho nhân viên
             $token = $employee->createToken('Personal Access Token')->accessToken;
-
             return response()->json([
                 'access_token' => $token,
                 'token_type' => 'Bearer',
                 'employee' => [
                     "name" => $employee->name,
+                    "hotel_id" => $employee->hotel_id
                 ]
             ]);
         }
