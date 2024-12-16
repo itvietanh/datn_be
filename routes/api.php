@@ -357,14 +357,6 @@ Route::group([
     Route::group([
         'prefix' => 'payment-momo'
     ], function () {
-        // // MoMo sẽ redirect về đây sau khi người dùng hoàn thành thanh toán
-        // // Gửi yêu cầu thanh toán tới MoMo
-        // Route::post('', [PaymentController::class, 'createPayment']);
-        // Route::get('return', [PaymentController::class, 'handleReturn']); // Xử lý phản hồi từ MoMo
-        // // MoMo sẽ gửi thông báo trạng thái thanh toán qua webhook
-        // Route::post('notify', [PaymentController::class, 'handleNotify']); // Xử lý webhook notify từ MoMo
-
-
         Route::post('', [PaymentController::class, 'payWithMoMo'])->name('payment');
         Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
         Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
@@ -376,6 +368,7 @@ Route::group([
 
         Route::get('get-list', [RoleController::class, 'index']);
         Route::post('', [RoleController::class, 'store']);
+        Route::get('options', [RoleController::class, 'getCombobox']);
         Route::get('', [RoleController::class, 'show']);
         Route::put('{uuid}', [RoleController::class, 'update']);
         Route::delete('{uuid}', [RoleController::class, 'destroy']);
