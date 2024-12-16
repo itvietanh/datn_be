@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\RoomtypeStatisticsController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\ServiceCatgoriesController;
+use App\Http\Controllers\Api\ShiftController;
 
 Route::group([
     'prefix' => 'system',
@@ -391,5 +392,16 @@ Route::group([
         'prefix' => 'service-categories'
     ], function () {
         Route::get('options', [ServiceCatgoriesController::class, 'getData']);
+    });
+
+    Route::group([
+        'prefix' => 'shifts'
+    ], function () {
+        Route::get('get-list', [ShiftController::class, 'index']);
+        Route::get('options', [ShiftController::class, 'getCombobox']);
+        Route::post('', [ShiftController::class, 'store']);
+        Route::get('', [ShiftController::class, 'show']);
+        Route::put('', [ShiftController::class, 'update']);
+        Route::delete('', [ShiftController::class, 'destroy']);
     });
 });

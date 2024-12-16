@@ -20,6 +20,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Ramsey\Uuid\Uuid;
 
+
 class BookingRoomService extends BaseService
 {
     public function __construct()

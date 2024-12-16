@@ -30,7 +30,7 @@ class OrderHistoryService extends BaseService
             "t.payment_status"
         ];
 
-        $searchParams = $req->all();
+        $searchParams = (object) $req->all();
 
         $data = $this->getList($req, $column, function ($query) use ($searchParams) {
 
@@ -44,6 +44,32 @@ class OrderHistoryService extends BaseService
 
             if (isset($searchParams->guest_id)) {
                 $query->where('g.id', '=', $searchParams->guest_id);
+            }
+
+            if (isset($searchParams->name)) {
+                $name = mb_strtolower(trim($searchParams->name), 'UTF-8');
+                $query->whereRaw('LOWER(g.name) LIKE ?', ['%' . $name . '%']);
+            }
+
+            if (isset($searchParams->room_number)) {
+                $roomNumber = trim($searchParams->room_number);
+                $query->whereRaw('r.room_number LIKE ?', ['%' . $roomNumber . '%']);
+            }
+            // Lọc theo check_in (từ ngày)
+            if (isset($searchParams->check_in)) {
+                $checkIn = $searchParams->check_in;
+                $query->whereDate('rug.check_in', '=', $checkIn);
+            }
+
+            // Lọc theo check_out (đến ngày)
+            if (isset($searchParams->check_out)) {
+                $checkOut = $searchParams->check_out;
+                $query->whereDate('rug.check_out', '=', $checkOut);
+            }
+
+            // Lọc theo payment_status
+            if (isset($searchParams->payment_status)) {
+                $query->where('t.payment_status', '=', $searchParams->payment_status);
             }
         });
 

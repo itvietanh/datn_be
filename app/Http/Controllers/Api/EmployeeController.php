@@ -105,7 +105,7 @@ class EmployeeController extends BaseController
         if (!$employee) {
             return $this->response404();
         }
-        EmployeeRole::where('employee_id', $employee->id)->delete();
+        Shift::where('employee_id', $employee->id)->delete();
         $this->service->delete($employee->id);
         return $this->responseSuccess($employee);
     }
