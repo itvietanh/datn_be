@@ -35,4 +35,14 @@ class HomeHotelController extends BaseController
         $data = $this->service->handleAddGuestInRoomUsing($req);
         return $this->responseSuccess($data, 201);
     }
+
+    public function checkOutRug(Request $req)
+    {
+        return $this->responseSuccess($this->service->guestCheckOut($req));
+    }
+
+    public function getMoneyInRoom(Request $req)
+    {
+        return $this->oneResponse($this->service->getMoneyRoomUsing($req));
+    }
 }

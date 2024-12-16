@@ -96,25 +96,6 @@ class BookingRoomService extends BaseService
                 }
             }
 
-            // if (!empty($req->roomUsingGuest)) {
-            //     $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
-            //     $checkOut = null;
-            //     if ($req->roomUsingGuest['check_out']) {
-            //         $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
-            //     }
-            //     $roomUsingGuest = $req->roomUsingGuest;
-            //     foreach ($roomUsingId as $ruValue) {
-            //         $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
-            //         $roomUsingGuest['room_using_id'] = $ruValue->id;
-            //         $roomUsingGuest['check_in'] = $checkIn;
-            //         if ($checkOut) {
-            //             $roomUsingGuest['check_out'] = $checkOut;
-            //         }
-            //         $this->model = new RoomUsingGuest();
-            //         $this->create($roomUsingGuest);
-            //     }
-            // }
-
             if (!empty($req->roomUsingService)) {
                 $roomUsingService = $req->roomUsingService;
                 $this->model = new RoomUsingService();
@@ -150,22 +131,43 @@ class BookingRoomService extends BaseService
                 }
 
                 $roomUsingGuest = $req->roomUsingGuest;
-                $guest = Guest::where('uuid', $roomUsingGuest['guestUuid'])->first();
-                $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
-                $roomUsingGuest['check_in'] = $checkIn;
-                $roomUsingGuest['guest_id'] = $guest->id;
-                if ($checkOut) {
-                    $roomUsingGuest['check_out'] = $checkOut;
+                if ($roomUsingGuest['guestUuid']) {
+                    $guest = Guest::where('uuid', $roomUsingGuest['guestUuid'])->first();
+                    $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
+                    $roomUsingGuest['check_in'] = $checkIn;
+                    $roomUsingGuest['guest_id'] = $guest->id;
+                    if ($checkOut) {
+                        $roomUsingGuest['check_out'] = $checkOut;
+                    }
+                } else {
+                    $this->model = new Guest();
+                    $roomUsingGuest['guest']['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
+                    $guest = $this->create($roomUsingGuest['guest']);
+
+                    $ru = RoomUsing::where('id', $roomUsingGuest['room_using_id'])->first();
+                    $this->model = new BookingGuest();
+                    $bookingGuestData = [
+                        'booking_id' => $ru->booking_id,
+                        'guest_id' => $guest->id,
+                    ];
+                    $this->create($bookingGuestData);
+
+                    $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
+                    $roomUsingGuest['check_in'] = $checkIn;
+                    $roomUsingGuest['guest_id'] = $guest->id;
+                    if ($checkOut) {
+                        $roomUsingGuest['check_out'] = $checkOut;
+                    }
                 }
                 $this->model = new RoomUsingGuest();
                 $this->create($roomUsingGuest);
-
+                // dd($guest);
                 $bookingGuest = BookingGuest::where('guest_id', $guest->id)->first();
                 if ($bookingGuest) {
                     $bookingGuest->status = 1;
                     $bookingGuest->save();
                 } else {
-                    return $this->responseError("Không tìm thấy khách", 404);
+                    return $this->responseError("Không tìm thấy khách");
                 }
             }
             DB::commit();

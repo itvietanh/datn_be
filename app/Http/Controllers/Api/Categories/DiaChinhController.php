@@ -21,10 +21,9 @@ class DiaChinhController extends BaseController
     public function getCombobox(Request $req)
     {
         $capDiaChinh = $req->capDiaChinh;
-        $wardCode = $req->village;
 
         $data = [];
-
+        
         switch ($capDiaChinh) {
             case 'T':
                 $data = $this->service->getProvinces($req);

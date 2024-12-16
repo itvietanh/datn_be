@@ -123,19 +123,6 @@ class RoomController extends BaseController
             $this->response404();
         }
 
-        if (isset($rus->service_id)) {
-            $service = Service::where('id', $rus->service_id)->get();
-            if ($service) {
-                $totalPriceService = 0;
-                foreach ($service as $value) {
-                    $totalPriceService += $value->price;
-                }
-                $params->total_amount = $params->total_amount + $totalPriceService;
-            }
-        } else {
-            $this->response404();
-        }
-
         if ($room) {
             $room->status = RoomStatusEnum::CAN_DON->value;
             $ru->total_amount = $params->total_amount;

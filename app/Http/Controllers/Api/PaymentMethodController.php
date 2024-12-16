@@ -34,6 +34,7 @@ class PaymentMethodController extends BaseController
             if (isset($searchParams->description)) {
                 $query->where('description', 'LIKE', '%' . $searchParams->description . '%');
             }
+            $query->where('status', '=', 1);
         });
 
         return response()->json($data);
@@ -53,6 +54,7 @@ class PaymentMethodController extends BaseController
             if (!empty($searchParams->id)) {
                 $query->where('id', '=', $searchParams->id);
             }
+            $query->where('status', '=', 1);
             $query->orderBy('id', 'asc');
         });
         return $this->getPaging($data);

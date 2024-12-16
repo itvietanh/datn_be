@@ -141,7 +141,7 @@ class TransitionStatisticsController extends BaseController
                 ->whereBetween('room_using.check_in', [$start_date, $end_date])
                 ->where('transition.payment_status', '=', 2)
                 ->groupBy('date')
-                ->orderBy('date', 'desc')
+                ->orderBy('date', 'asc')
                 ->get();
 
             return response()->json([

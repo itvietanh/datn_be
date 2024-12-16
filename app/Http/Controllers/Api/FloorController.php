@@ -31,6 +31,8 @@ class FloorController extends BaseController
             jsonb_agg(
                 DISTINCT jsonb_build_object(
                     'ruUuid', room_using.uuid,
+                    'prepaid', room_using.prepaid,
+                    'room_change_fee', room_using.room_change_fee,
                     'roomUuid', room.uuid,
                     'roomNumber', room.room_number,
                     'status', room.status,
@@ -41,7 +43,7 @@ class FloorController extends BaseController
                     'totalGuests', (
                         SELECT COUNT(*)
                         FROM room_using_guest rug
-                        WHERE rug.room_using_id = room_using.id and room.status = 2
+                        WHERE rug.room_using_id = room_using.id and room.status = 2 and rug.deleted_at is null
                     ),
                     'room_using_guest', (
                         SELECT jsonb_agg(
@@ -159,13 +161,9 @@ class FloorController extends BaseController
      */
     public function update(Request $req)
     {
-        $dataReq = $req->validate([
-            'hotel_id' => 'required|integer',
-            'floor_number' => 'required|integer'
-        ]);
         $floor = $this->service->findFirstByUuid($req->uuid);
         if (!$floor) $this->response404();
-        $data = $this->service->update($floor->id, $dataReq);
+        $data = $this->service->update($floor->id, $req->all());
         return $this->responseSuccess($data);
     }
 

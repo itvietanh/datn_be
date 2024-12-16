@@ -24,7 +24,7 @@ class ServiceController extends BaseController
     {
         $columns = ['id', 'uuid', 'service_name', 'price as service_price', 'created_at', 'hotel_id', 'service_categories_id'];
 
-        $searchParams = $request->only(['hotel_id', 'service_name', 'service_price']);
+        $searchParams = $request->only(['hotel_id', 'service_name', 'service_price', 'catId']);
 
         $data = $this->service->getList($request, $columns, function ($query) use ($searchParams) {
             $query->with('hotel');
@@ -34,7 +34,12 @@ class ServiceController extends BaseController
             if (!empty($searchParams['service_name'])) {
                 $query->where('service_name', 'LIKE', '%' . $searchParams['service_name'] . '%');
             }
+            if (!empty($searchParams['catId'])) {
+                $query->where('service_categories_id', '=', $searchParams['catId']);
+            }
         });
+
+        
 
         return $this->getPaging($data);
     }

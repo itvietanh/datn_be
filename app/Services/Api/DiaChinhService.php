@@ -20,12 +20,17 @@ class DiaChinhService extends BaseService
     public function getProvinces(Request $req)
     {
         $coulumn = ['code as value', 'name', 'full_name as label'];
-        $searchParams = (object) $req->only(['q', 'values']);
+        $searchParams = (object) $req->only(['q', 'values', 'tenNganGon']);
         $this->model = new Provinces();
         $data = $this->getList($req, $coulumn, function ($query) use ($searchParams) {
             if (!empty($searchParams->q)) {
                 $q = mb_strtolower(trim($searchParams->q), 'UTF-8');
                 $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . $q . '%']);
+            }
+
+            if (!empty($searchParams->tenNganGon)) {
+                $tenNganGon = mb_strtolower(trim($searchParams->tenNganGon), 'UTF-8');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . $tenNganGon . '%']);
             }
 
             if (!empty($searchParams->values)) {
@@ -38,12 +43,17 @@ class DiaChinhService extends BaseService
     public function getDistrictsByProvince(Request $req)
     {
         $coulumn = ['code as value', 'name', 'full_name as label'];
-        $searchParams = (object) $req->only(['diaChinhChaId', 'values', 'q']);
+        $searchParams = (object) $req->only(['diaChinhChaId', 'values', 'q', 'tenNganGon']);
 
         $this->model = new Districts();
         $data = $this->getList($req, $coulumn, function ($query) use ($searchParams) {
             if (!empty($searchParams->values)) {
                 $query->where('code', '=', $searchParams->values);
+            }
+
+            if (!empty($searchParams->tenNganGon)) {
+                $tenNganGon = mb_strtolower(trim($searchParams->tenNganGon), 'UTF-8');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . $tenNganGon . '%']);
             }
 
             if (!empty($searchParams->diaChinhChaId)) {
@@ -61,11 +71,16 @@ class DiaChinhService extends BaseService
     public function getWardsByDistrict(Request $req)
     {
         $coulumn = ['code as value', 'name', 'full_name as label'];
-        $searchParams = (object) $req->only(['diaChinhChaId', 'values', 'q']);
+        $searchParams = (object) $req->only(['diaChinhChaId', 'values', 'q', 'tenNganGon']);
         $this->model = new Wards();
         $data = $this->getList($req, $coulumn, function ($query) use ($searchParams) {
             if (!empty($searchParams->values)) {
                 $query->where('code', '=', $searchParams->values);
+            }
+
+            if (!empty($searchParams->tenNganGon)) {
+                $tenNganGon = mb_strtolower(trim($searchParams->tenNganGon), 'UTF-8');
+                $query->whereRaw('LOWER(full_name) LIKE ?', ['%' . $tenNganGon . '%']);
             }
 
             if (!empty($searchParams->diaChinhChaId)) {

@@ -22,13 +22,16 @@ class RoomTypeController extends BaseController
     public function index(Request $req)
     {
         $column = ['uuid', 'hotel_id', 'type_name', 'description', 'price_per_hour', 'price_per_day', 'price_overtime', 'vat', 'number_of_people', 'created_at', 'updated_at', 'created_by', 'updated_by'];
-        $searchParams = (object) $req->only(['hotel_id', 'type_name']);
+        $searchParams = (object) $req->only(['hotel_id', 'type_name', 'id']);
         $data = $this->service->getList($req, $column, function ($query) use ($searchParams) {
             if (isset($searchParams->hotel_id)) {
                 $query->where('room_type.hotel_id', '=', $searchParams->hotel_id);
             }
             if (isset($searchParams->type_name)) {
                 $query->where('room_type.type_name', '=', $searchParams->type_name);
+            }
+            if (isset($searchParams->id)) {
+                $query->where('room_type.id', '=', $searchParams->id);
             }
         });
         return $this->getPaging($data);
@@ -40,7 +43,7 @@ class RoomTypeController extends BaseController
 
         $searchParams = (object) $req->only(['id', 'q']);
 
-        $data = $this->service->getList($req, $fillable, function($query) use ($searchParams) {
+        $data = $this->service->getList($req, $fillable, function ($query) use ($searchParams) {
             if (!empty($searchParams->q)) {
                 $query->where('type_name', 'like', '%' . $searchParams->q . '%');
             }

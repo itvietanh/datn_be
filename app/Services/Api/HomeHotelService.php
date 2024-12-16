@@ -93,12 +93,23 @@ class HomeHotelService extends BaseService
                 'g.contact_details as contactDetails',
                 'g.birth_date as birthDate',
                 'rug.check_in as checkIn',
-                'rug.check_out as checkOut',
+                'rug.check_out as checkOut'
             )
             ->join('guest as g', 'rug.guest_id', '=', 'g.id')
             ->join('room_using as ru', 'rug.room_using_id', '=', 'ru.id');
         $query->where('ru.uuid', $req->uuid);
+        $query->whereNull('rug.deleted_at');
         return $this->getListQueryBuilder($req, $query);
+    }
+
+    public function guestCheckOut($req)
+    {
+        $guest = Guest::where('uuid', $req->uuid)->first();
+        $data = RoomUsingGuest::where('guest_id', $guest->id)->first();
+        $data->check_out = Carbon::now();
+        $data->save();
+        $data->delete();
+        return $data->uuid;
     }
 
     public function handleAddGuestInRoomUsing($req)
@@ -136,5 +147,18 @@ class HomeHotelService extends BaseService
     {
         $this->model = new RoomUsing();
         return $this->findFirstByUuid($uuid);
+    }
+
+    public function getMoneyRoomUsing($req)
+    {
+        $query = DB::table('room_using as ru')
+            ->select(
+                'ru.uuid',
+                'ru.prepaid',
+                'ru.room_change_fee as roomChangeFee',
+                'ru.total_amount as totalAmount'
+            );
+        $query->where('ru.uuid', $req->uuid);
+        return $this->getOneQueryBuilder($query);
     }
 }

@@ -32,76 +32,85 @@ class OrderRoomService extends BaseService
 
     public function handleOrderRoom(Request $req)
     {
-        $guestId = [];
-        $transId = [];
-        $roomUsingId = [];
+        DB::beginTransaction();
+        try {
+            $guestId = [];
+            $transId = [];
+            $roomUsingId = [];
 
-        if (!empty($req->guests)) {
-            $guest = $req->guests;
-            foreach ($guest as $item) {
-                $this->model = new Guest();
-                $guestId[] = $this->create($item);
-            }
-        }
-
-        if (!empty($req->transition)) {
-            $transitionDateTime = $this->convertLongToTimestamp($req->transition['transition_date']);
-            $transition = $req->transition;
-            foreach ($guestId as $value) {
-                if ($value->representative === true) {
-                    $transition['guest_id'] = $value->id;
+            if (!empty($req->guests)) {
+                $guest = $req->guests;
+                foreach ($guest as $item) {
+                    $this->model = new Guest();
+                    $guestId[] = $this->create($item);
                 }
             }
-            $transition['transition_date'] = $transitionDateTime;
-            $this->model = new Transition();
-            $transId = $this->create($transition);
-        }
 
-        if (!empty($req->roomUsing)) {
-            $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
-            $roomUsing = $req->roomUsing;
-            $roomUsing['trans_id'] = $transId->id;
-            $roomUsing['check_in'] = $checkIn;
-            $this->model = new RoomUsing();
-            $roomUsingId = $this->create($roomUsing);
-        }
-
-        if (!empty($req->roomUsingGuest)) {
-            $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
-            $checkOut = null;
-            if ($req->roomUsingGuest['check_out']) {
-                $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
-            }
-            $roomUsingGuest = $req->roomUsingGuest;
-            foreach ($guestId as $value) {
-                $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
-                $roomUsingGuest['guest_id'] = $value->id;
-                $roomUsingGuest['room_using_id'] = $roomUsingId->id;
-                $roomUsingGuest['check_in'] = $checkIn;
-                if ($checkOut) {
-                    $roomUsingGuest['check_out'] = $checkOut;
+            if (!empty($req->transition)) {
+                $transitionDateTime = $this->convertLongToTimestamp($req->transition['transition_date']);
+                $transition = $req->transition;
+                foreach ($guestId as $value) {
+                    if ($value->representative === true) {
+                        $transition['guest_id'] = $value->id;
+                    }
                 }
-                $this->model = new RoomUsingGuest();
-                $this->create($roomUsingGuest);
+                $transition['transition_date'] = $transitionDateTime;
+                $this->model = new Transition();
+                $transId = $this->create($transition);
             }
-        }
 
-        if (!empty($req->roomUsingService)) {
-            $roomUsingService = $req->roomUsingService;
-            $this->model = new RoomUsingService();
-            $this->create($roomUsingService);
-        }
+            if (!empty($req->roomUsing)) {
+                $checkIn = $this->convertLongToTimestamp($req->roomUsing['check_in']);
+                $roomUsing = $req->roomUsing;
+                $roomUsing['trans_id'] = $transId->id;
+                $roomUsing['check_in'] = $checkIn;
+                $this->model = new RoomUsing();
+                $roomUsingId = $this->create($roomUsing);
+            }
 
-        if (!empty($req->roomUsing['room_id'])) {
-            $this->model = new Room();
-            $params = [
-                "status" => RoomStatusEnum::DANG_O->value
-            ];
-            $this->update($req->roomUsing['room_id'], $params);
-        }
+            if (!empty($req->roomUsingGuest)) {
+                $checkIn = $this->convertLongToTimestamp($req->roomUsingGuest['check_in']);
+                $checkOut = null;
+                if ($req->roomUsingGuest['check_out']) {
+                    $checkOut = $this->convertLongToTimestamp($req->roomUsingGuest['check_out']);
+                }
+                $roomUsingGuest = $req->roomUsingGuest;
+                foreach ($guestId as $value) {
+                    $roomUsingGuest['uuid'] = str_replace('-', '', Uuid::uuid4()->toString());
+                    $roomUsingGuest['guest_id'] = $value->id;
+                    $roomUsingGuest['room_using_id'] = $roomUsingId->id;
+                    $roomUsingGuest['check_in'] = $checkIn;
+                    if ($checkOut) {
+                        $roomUsingGuest['check_out'] = $checkOut;
+                    }
+                    $this->model = new RoomUsingGuest();
+                    $this->create($roomUsingGuest);
+                }
+            }
 
-        return $req->all();
+            if (!empty($req->roomUsingService)) {
+                $roomUsingService = $req->roomUsingService;
+                $this->model = new RoomUsingService();
+                $this->create($roomUsingService);
+            }
+
+            if (!empty($req->roomUsing['room_id'])) {
+                $this->model = new Room();
+                $params = [
+                    "status" => RoomStatusEnum::DANG_O->value
+                ];
+                $this->update($req->roomUsing['room_id'], $params);
+            }
+
+            DB::commit();
+
+            return $req->all();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
+
 
     public function handleCalculatorPrice(Request $req)
     {
@@ -328,7 +337,7 @@ class OrderRoomService extends BaseService
             ];
 
             $roomUsingGuest = $this->update($rug->id, $dataRuGuest);
-        }  
+        }
 
         return $roomUsingGuest;
     }

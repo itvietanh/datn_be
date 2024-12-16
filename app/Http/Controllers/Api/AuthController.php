@@ -80,10 +80,16 @@ class AuthController extends BaseController
     public function getProfile()
     {
         $user = Auth::guard('employee')->user();
+
+        $role = $this->service->getAuthorizal($user);
+
         $res = [
             "email" => $user->email,
             "name" => $user->name,
-            "hotelId" => $user->hotel_id
+            "hotelId" => $user->hotel_id,
+            'authorizal' => [
+                $role
+            ]
         ];
         return $this->oneResponse($res);
     }

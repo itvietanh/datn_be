@@ -338,7 +338,9 @@ Route::group([
         ], function () {
             Route::get('get-room-using', [HomeHotelController::class, 'getRoomUsing']);
             Route::get('get-room-using-guest', [HomeHotelController::class, 'getRoomUsingGuest']);
+            Route::get('get-money-in-room', [HomeHotelController::class, 'getMoneyInRoom']);
             Route::post('add-guest-room-using', [HomeHotelController::class, 'addGuestRoomUsing']);
+            Route::delete('check-out-rug', [HomeHotelController::class, 'checkOutRug']);
         });
 
         // Phương thức thanh toán
