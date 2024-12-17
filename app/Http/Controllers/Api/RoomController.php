@@ -116,6 +116,7 @@ class RoomController extends BaseController
         $room = Room::where('uuid', $params->uuid)->first();
         $ru = RoomUsing::where('room_id', $room->id)->first();
         $trans = Transition::where('id', $ru->trans_id)->first();
+        $bk = null;
         if (!$trans) {
             $bk = Booking::where('id', $ru->booking_id)->first();
         }

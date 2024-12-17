@@ -101,6 +101,7 @@ class GuestController extends BaseController
     public function update(GuestRequest $request)
     {
         $guest = $this->service->findFirstByUuid($request->uuid);
+        // dd($guest);
         if (!$guest) {
             return $this->response404();
         }

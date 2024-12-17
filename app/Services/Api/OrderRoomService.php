@@ -316,10 +316,12 @@ class OrderRoomService extends BaseService
 
                 $this->updateRoomStatus($req->roomIdNew);
 
-                $service = RoomUsingService::where('room_using_id', $roomUsing->id)->first();
+                $service = RoomUsingService::where('room_using_id', $roomUsing->id)->get();
                 if ($service) {
-                    $service->room_using_id = $ruNew->id;
-                    $service->save();
+                    foreach ($service as $value) {
+                        $value->room_using_id = $ruNew->id;
+                        $value->save();
+                    }
                 }
             }
 
