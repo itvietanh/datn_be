@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Services\Api\BookingRoomService;
 use Illuminate\Http\Request;
 
@@ -64,5 +65,21 @@ class BookingController extends BaseController
     public function updateRoomInRoomType(Request $req)
     {
         return $this->oneResponse($this->service->updateRoomInRt($req));
+    }
+
+    public function deleteBooking(Request $req)
+    {
+        return $this->oneResponse($this->service->deleteBooking($req));
+    }
+
+    public function handleConfirm(Request $req)
+    {
+        $booking = Booking::where('id', $req->id)->first();
+        if (!$booking) {
+            $this->response404();
+        }
+        $booking->status = 2;
+        $booking->save();
+        return $this->oneResponse($booking);
     }
 }

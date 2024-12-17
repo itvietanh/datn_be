@@ -14,7 +14,7 @@ class Employee extends Authenticatable
 
     protected $table = 'employee';
 
-    protected $fillable = ['uuid', 'name', 'email',  'password', 'phone', 'address', 'status', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+    protected $fillable = ['uuid', 'name', 'email',  'password', 'phone', 'address', 'status', 'hotel_id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'shift_id'];
     public $timestamps = true;
     protected $hidden = [
         'password',

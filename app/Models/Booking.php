@@ -24,6 +24,22 @@ class Booking extends Model
         'order_date',
         'total_amount',
         'contract_type',
-        'data_guest_id'
+        'data_guest_id',
+        'note'
     ];
+
+    public function details()
+    {
+        return $this->hasMany(BookingDetail::class, 'booking_id', 'id');
+    }
+
+    public function roomUsing()
+    {
+        return $this->hasMany(RoomUsing::class, 'booking_id', 'id');
+    }
+
+    public function bookinGuest()
+    {
+        return $this->hasMany(BookingGuest::class, 'booking_id', 'id');
+    }
 }

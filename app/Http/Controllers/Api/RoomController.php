@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Room;
 use App\Models\RoomUsing;
 use App\Models\RoomUsingService;
@@ -115,6 +116,9 @@ class RoomController extends BaseController
         $room = Room::where('uuid', $params->uuid)->first();
         $ru = RoomUsing::where('room_id', $room->id)->first();
         $trans = Transition::where('id', $ru->trans_id)->first();
+        if (!$trans) {
+            $bk = Booking::where('id', $ru->booking_id)->first();
+        }
         $rus = RoomUsingService::where('room_using_id', $ru->id)->first();
 
         if (isset($ru->id)) {
@@ -126,12 +130,21 @@ class RoomController extends BaseController
         if ($room) {
             $room->status = RoomStatusEnum::CAN_DON->value;
             $ru->total_amount = $params->total_amount;
-            $trans->payment_status = PaymentStatusEnum::DA_THANH_TOAN->value;
+            if ($trans) {
+                $trans->payment_status = PaymentStatusEnum::DA_THANH_TOAN->value;
+                $trans->save();
+            }
+
+            if ($bk) {
+                $bk->status = PaymentStatusEnum::DA_THANH_TOAN->value;
+                $bk->save();
+            }
+
             if ($rus) {
                 $rus->status = PaymentStatusEnum::DA_THANH_TOAN->value;
                 $rus->save();
             }
-            $trans->save();
+
             $ru->save();
             $ru->delete();
             $room->save();

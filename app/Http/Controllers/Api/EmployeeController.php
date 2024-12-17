@@ -28,7 +28,7 @@ class EmployeeController extends BaseController
      */
     public function index(Request $req)
     {
-        $column = ['e.uuid', 'e.name', 'e.email', 'e.phone', 'e.address', 'e.hotel_id', 'e.created_at', 'e.updated_at', 'e.created_by', 'e.updated_by', 'r.role_name', 'e.status'];
+        $column = ['e.uuid', 'e.name', 'e.email', 'e.phone', 'e.address', 'e.hotel_id', 'e.created_at', 'e.updated_at', 'e.created_by', 'e.updated_by', 'r.role_name', 'e.status', 'e.shift_id'];
 
         $searchParams = (object) $req->all();
 
@@ -72,7 +72,7 @@ class EmployeeController extends BaseController
     public function show(Request $req)
     {
         $data = DB::table('employee as e')
-            ->select('e.uuid', 'e.name', 'e.email', 'e.phone', 'e.address', 'e.hotel_id', 'e.created_at', 'e.updated_at', 'e.created_by', 'e.updated_by', 'r.id as role_id', 'e.password', 'e.status')
+            ->select('e.uuid', 'e.name', 'e.email', 'e.phone', 'e.address', 'e.hotel_id', 'e.created_at', 'e.updated_at', 'e.created_by', 'e.updated_by', 'r.id as role_id', 'e.password', 'e.status', 'e.shift_id')
             ->leftJoin('employee_role as er', 'e.id', '=', 'er.employee_id')
             ->leftJoin('role as r', 'er.role_id', '=', 'r.id')
             ->where('e.uuid', $req->uuid)->first();

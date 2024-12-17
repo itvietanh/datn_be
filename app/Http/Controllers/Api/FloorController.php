@@ -111,6 +111,8 @@ class FloorController extends BaseController
             if (!empty($searchParams->id)) {
                 $query->where('id', '=', $searchParams->id);
             }
+
+            $query->orderBy('floor_number');
         });
 
         return $this->getPaging($data);

@@ -2,6 +2,7 @@
 
 namespace App\Services\Api;
 
+use App\Models\Booking;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -281,40 +282,59 @@ class OrderRoomService extends BaseService
     /** Change */
     public function changeRoom($req)
     {
-        $room = $this->getRoomByUuid($req->uuid);
-        $room->status = 1;
-        $room->save();
+        DB::beginTransaction(); // Bắt đầu transaction
+        try {
+            $room = $this->getRoomByUuid($req->uuid);
+            $room->status = 1;
+            $room->save();
 
-        $this->model = new RoomUsing();
-        $roomUsing = $this->model
-            ->where('room_id', $room->id)
-            ->whereNull('deleted_at')->first();
+            $this->model = new RoomUsing();
+            $roomUsing = $this->model
+                ->where('room_id', $room->id)
+                ->whereNull('deleted_at')->first();
 
-        if ($roomUsing) {
-            $roomUsing->check_out = Carbon::now();
-            if (!empty($roomUsing->room_change_fee)) {
-                $roomUsing->room_change_fee = $req->transferFee;
+            if ($roomUsing) {
+                $roomUsing->check_out = Carbon::now();
+                $roomUsing->save();
+                $roomUsing->delete();
+                $ruNew = $this->createRoomUsingNew($req);
+                if (!$ruNew) {
+                    throw new \Exception('Failed to create new RoomUsing');
+                }
+
+                if ($roomUsing->room_change_fee) {
+                    $req->transferFee += $roomUsing->room_change_fee;
+                }
+
+                $ruNew->room_change_fee = $req->transferFee;
+                $ruNew->total_amount = $roomUsing->total_amount;
+                $ruNew->prepaid = $roomUsing->prepaid;
+
+                $ruNew->save();
+
+                $this->updateRUGuest($req, $ruNew->id);
+
+                $this->updateRoomStatus($req->roomIdNew);
+
+                $service = RoomUsingService::where('room_using_id', $roomUsing->id)->first();
+                if ($service) {
+                    $service->room_using_id = $ruNew->id;
+                    $service->save();
+                }
             }
 
-            if (!empty($roomUsing->total_amount)) {
-                $roomUsing->total_amount = $req->transferFee ? ($req->transferFee + $req->total_amount) : $req->total_amount;
-            }
-
-            $roomUsing->save();
-
-            $roomUsing->delete();
-
-            $ruNew = $this->createRoomUsingNew($req);
-
-            $this->updateRUGuest($req, $ruNew->id);
-
-            $this->updateRoomStatus($req->roomIdNew);
+            DB::commit();
             return $roomUsing;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
     }
 
+
     public function updateRUGuest($req, $roomUsingId)
     {
+
         $this->model = new RoomUsingGuest();
         $roomUsingGuest = null;
         foreach ($req->guest as $item) {
@@ -345,7 +365,9 @@ class OrderRoomService extends BaseService
     public function createRoomUsingNew($req)
     {
         $guest = $this->getRepresentaive($req);
+
         $transition = $this->findFirstTransition($guest->id);
+
         if ($transition) {
             $this->model = new RoomUsing();
             $newRoomUsing = [
@@ -356,7 +378,22 @@ class OrderRoomService extends BaseService
                 "total_amount" => $req->totalAmount,
             ];
             return $this->create($newRoomUsing);
+        } else {
+            $booking = $this->findFirstBooking($guest->id);
+            if ($booking) {
+                $this->model = new RoomUsing();
+                $newRoomUsing = [
+                    "uuid" => str_replace('-', '', Uuid::uuid4()->toString()),
+                    "room_id" => $req->roomIdNew,
+                    "check_in" => $this->convertLongToTimestamp($req->checkIn),
+                    "booking_id" => $booking->id,
+                    "total_amount" => $req->totalAmount,
+                ];
+                return $this->create($newRoomUsing);
+            }
         }
+
+
         return null;
     }
 
@@ -386,6 +423,12 @@ class OrderRoomService extends BaseService
     {
         $transition = Transition::where('guest_id', $guestId)->first();
         return $transition;
+    }
+
+    public function findFirstBooking($guestId)
+    {
+        $bk = Booking::where('representative_id', $guestId)->first();
+        return $bk;
     }
 
     /**

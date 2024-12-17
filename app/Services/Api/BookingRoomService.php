@@ -259,7 +259,6 @@ class BookingRoomService extends BaseService
 
     public function updateRoomInRt(Request $req)
     {
-        // dd($req);
         $ruId = $req->ruId;
         $roomId = $req->roomId;
 
@@ -306,5 +305,31 @@ class BookingRoomService extends BaseService
         });
 
         return $data;
+    }
+
+    public function deleteBooking($req)
+    {
+        $ru = RoomUsing::where('booking_id', $req->id);
+        if ($ru) {
+            $ru->delete();
+        }
+
+        $bg = BookingGuest::where('booking_id', $req->id);
+        if ($bg) {
+            $bg->delete();
+        }
+
+        $bd = BookingDetail::where('booking_id', $req->id);
+        if ($bd) {
+            $bd->delete();
+        }
+
+        $this->model = new Booking();
+
+        $booking = $this->find($req->id);
+        if ($booking) {
+            $booking->delete();
+        }
+        return $booking;
     }
 }

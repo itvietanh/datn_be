@@ -26,7 +26,6 @@ class OrderRoomController extends BaseController
 
     public function store(Request $req)
     {
-        // dd($req);
         $data = $this->service->handleOrderRoom($req);
         return $this->responseSuccess($data, 201);
     }

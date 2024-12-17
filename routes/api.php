@@ -254,6 +254,8 @@ Route::group([
             Route::get('get-room-type', [BookingController::class, 'getListRoomType']);
             Route::get('options', [BookingController::class, 'getCombobox']);
             Route::put('update-room-in-rt', [BookingController::class, 'updateRoomInRoomType']);
+            Route::delete('delete-booking', [BookingController::class, 'deleteBooking']);
+            Route::put('confirm-booking', [BookingController::class, 'handleConfirm']);
         });
 
         /** Lịch sử đặt phòng */
